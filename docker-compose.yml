@@ -1,0 +1,9 @@
+services:
+  api:
+    build: ./images/backend
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      - ./images/backend/src:/usr/app/src
+    env_file:
+      - ./images/backend/src/.env
