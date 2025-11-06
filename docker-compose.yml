@@ -7,3 +7,16 @@ services:
       - ./images/backend/src:/usr/app/src
     env_file:
       - ./images/backend/src/.env
+
+  frontend:
+    build: ./images/frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./images/frontend:/usr/app
+      - /usr/app/node_modules
+    environment:
+      # This is used in App.jsx as import.meta.env.VITE_API_URL
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - api
