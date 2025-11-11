@@ -8,13 +8,16 @@ function App() {
 	// Use env var from Docker / Vite
 	const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+	// fetch(`${apiBaseUrl}/profile`, {
+	// 	headers: {
+	// 		"Content-Type": "application/json",
+	// 		token: localStorage.getItem("token") ?? null, // Replace with a valid token
+	// 	},
+	// });
 	useEffect(() => {
 		const fetchComments = async () => {
 			try {
-				const res = await fetch(`${apiBaseUrl}/`);
-				if (!res.ok) {
-					throw new Error(`Request failed with status ${res.status}`);
-				}
+				const res = await fetch(`${apiBaseUrl}/comments`);
 				const data = await res.json();
 				setComments(data);
 			} catch (err) {
