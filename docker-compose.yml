@@ -13,8 +13,7 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./images/frontend:/usr/app
-      - /usr/app/node_modules
+      - ./images/frontend/src:/usr/app/src
     environment:
       # This is used in App.jsx as import.meta.env.VITE_API_URL
       - VITE_API_URL=http://localhost:3000
