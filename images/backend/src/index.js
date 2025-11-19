@@ -158,6 +158,78 @@ app.get("/profile", checkToken, async (req, res) => {
 	}
 });
 
+app.get("/products", async (req, res) => {
+	try {
+		await client.connect();
+		const db = client.db("dev5");
+		const productsCollection = db.collection("products");
+
+		const {
+			category,
+			color,
+			brand,
+			minPrice,
+			maxPrice,
+			search,
+			sort,
+		} = req.query;
+
+		const query = {};
+
+		// simpele filters
+		if (category && category !== "all") query.category = category;
+		if (color && color !== "all") query.color = color;
+		if (brand) query.brand = { $regex: brand, $options: "i" };
+
+		if (search) {
+			query.$or = [
+				{ name: { $regex: search, $options: "i" } },
+				{ brand: { $regex: search, $options: "i" } },
+			];
+		}
+
+		if (minPrice || maxPrice) {
+			query.price = {};
+			if (minPrice) query.price.$gte = Number(minPrice);
+			if (maxPrice) query.price.$lte = Number(maxPrice);
+		}
+
+		// sorteeropties
+		let sortObj = { name: 1 };
+		switch (sort) {
+			case "name_desc":
+				sortObj = { name: -1 };
+				break;
+			case "price_asc":
+				sortObj = { price: 1 };
+				break;
+			case "price_desc":
+				sortObj = { price: -1 };
+				break;
+		}
+
+		const products = await productsCollection
+			.find(query)
+			.sort(sortObj)
+			.toArray();
+
+		return res.status(200).json({
+			status: 200,
+			products,
+		});
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({
+			status: 500,
+			error: "Kon producten niet ophalen",
+			value: err,
+		});
+	}
+});
+
+
+
+
 app.listen(process.env.PORT, () => {
 	console.log(`Server is running on port ${process.env.PORT}`);
 });
