@@ -12,6 +12,8 @@ function Home() {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
 
+	const [toast, setToast] = useState(null);
+
 	// Redirect + profiel ophalen
 	useEffect(() => {
 		if (!token) {
@@ -75,6 +77,43 @@ function Home() {
 
 	const initial =
 		user && user.username ? user.username.trim().charAt(0).toUpperCase() : "U";
+
+	const handleAddToCart = async (product) => {
+		if (!token) {
+			window.location.href = "/login";
+			return;
+		}
+
+		try {
+			const res = await fetch(`${API_URL}/cart/add`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					token,
+				},
+				body: JSON.stringify({ productId: product._id }),
+			});
+
+			const data = await res.json();
+
+			if (!res.ok) {
+				showToast("error", data.error || "Kon product niet toevoegen");
+				return;
+			}
+
+			showToast("success", "Product toegevoegd aan je mandje!");
+		} catch (err) {
+			showToast("error", "Er ging iets mis bij het toevoegen");
+		}
+	};
+
+	const showToast = (type, text) => {
+		setToast({ type, text });
+
+		setTimeout(() => {
+			setToast(null);
+		}, 3000); // verdwijnt na 3 sec
+	};
 
 	return (
 		<div
@@ -223,7 +262,7 @@ function Home() {
 										margin: 0,
 										fontSize: "0.95rem",
 										fontWeight: 600,
-										color: "#e0e7ff"
+										color: "#e0e7ff",
 									}}
 								>
 									{product.name}
@@ -247,7 +286,49 @@ function Home() {
 								>
 									€ {product.price.toFixed(2)}
 								</p>
+
+								<button
+									type="button"
+									onClick={() => handleAddToCart(product)}
+									style={{
+										marginTop: "8px",
+										width: "100%",
+										padding: "8px 10px",
+										borderRadius: "999px",
+										border: "none",
+										cursor: "pointer",
+										background: "linear-gradient(135deg,#22c55e,#0ea5e9)",
+										color: "#020617",
+										fontWeight: 600,
+										fontSize: "0.9rem",
+									}}
+								>
+									Toevoegen aan mandje
+								</button>
 							</div>
+
+							{/* FLOATING TOAST */}
+							{toast && (
+								<div
+									style={{
+										position: "fixed",
+										top: "20px",
+										right: "20px",
+										zIndex: 9999,
+										background:
+											toast.type === "success" ? "#065f46" : "#7f1d1d",
+										color: "white",
+										padding: "16px 20px",
+										borderRadius: "12px",
+										fontSize: "1rem",
+										fontWeight: 600,
+										transition: "all 0.3s ease",
+										animation: "fadeIn 0.3s",
+									}}
+								>
+									{toast.text}
+								</div>
+							)}
 						</article>
 					))}
 				</div>
