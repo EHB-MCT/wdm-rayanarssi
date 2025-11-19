@@ -1,15 +1,51 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function Home() {
 	const token = localStorage.getItem("token");
+	const [user, setUser] = useState(null);
+	const [profileError, setProfileError] = useState("");
 
-	// Gebruiker niet ingelogd → redirect
-	if (!token) {
-		window.location.href = "/";
-		return null;
-	}
+	// Redirect + profiel ophalen
+	useEffect(() => {
+		if (!token) {
+			window.location.href = "/login";
+			return;
+		}
+		fetchProfile();
+	}, [token]);
 
-	const [open, setOpen] = useState(false);
+	const fetchProfile = async () => {
+		try {
+			const res = await fetch(`${API_URL}/profile`, {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+					token,
+				},
+			});
+
+			const data = await res.json();
+
+			if (!res.ok) {
+				setProfileError(data.error || "Kon profiel niet ophalen");
+				setUser(null);
+				return;
+			}
+
+			setUser(data.user || null);
+		} catch (err) {
+			console.error(err);
+			setProfileError("Er ging iets mis bij het ophalen van je profiel");
+		}
+	};
+
+	// Geen token? Niks renderen (useEffect doet redirect)
+	if (!token) return null;
+
+	const initial =
+		user && user.username ? user.username.trim().charAt(0).toUpperCase() : "U";
 
 	return (
 		<div
@@ -35,75 +71,39 @@ function Home() {
 					Webshop
 				</h1>
 
-				{/* ACCOUNT BUTTON */}
-				<div style={{ position: "relative" }}>
-					<button
-						onClick={() => setOpen(!open)}
-						style={{
-							padding: "10px 16px",
-							background: "#0ea5e9",
-							border: "none",
-							borderRadius: "8px",
-							color: "white",
-							cursor: "pointer",
-							fontWeight: 600,
-						}}
-					>
-						Account
-					</button>
-
-					{/* DROPDOWN */}
-					{open && (
-						<div
-							style={{
-								position: "absolute",
-								top: "48px",
-								right: 0,
-								background: "white",
-								borderRadius: "10px",
-								boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-								minWidth: "160px",
-								overflow: "hidden",
-							}}
-						>
-							<button
-								onClick={() => {
-									window.location.href = "/profile";
-								}}
-								style={{
-									width: "100%",
-									padding: "12px",
-									background: "white",
-									border: "none",
-									textAlign: "left",
-									cursor: "pointer",
-								}}
-							>
-								Mijn account
-							</button>
-
-							<button
-								onClick={() => {
-									localStorage.removeItem("token");
-									window.location.href = "/login";
-								}}
-								style={{
-									width: "100%",
-									padding: "12px",
-									background: "#fee2e2",
-									border: "none",
-									textAlign: "left",
-									cursor: "pointer",
-									color: "#b91c1c",
-									fontWeight: 600,
-								}}
-							>
-								Uitloggen
-							</button>
-						</div>
-					)}
+				{/* AVATAR CIRCLE */}
+				<div
+					onClick={() => (window.location.href = "/profile")}
+					style={{
+						width: "40px",
+						height: "40px",
+						borderRadius: "999px",
+						background: "radial-gradient(circle at 30% 30%, #22c55e, #0ea5e9)",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						fontSize: "1.1rem",
+						fontWeight: 700,
+						color: "#020617",
+						cursor: "pointer",
+						boxShadow: "0 6px 14px rgba(0,0,0,0.25)",
+					}}
+					title={
+						user
+							? `${user.username} – klik om naar je profiel te gaan`
+							: "Naar profiel"
+					}
+				>
+					{initial}
 				</div>
 			</header>
+
+			{/* Kleine hint / error (optioneel) */}
+			{profileError && (
+				<p style={{ color: "#b91c1c", fontSize: "0.9rem" }}>{profileError}</p>
+			)}
+
+			{/* Hier komt later je webshop-grid met producten */}
 		</div>
 	);
 }
