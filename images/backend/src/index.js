@@ -161,46 +161,34 @@ app.get("/products", async (req, res) => {
 		const db = client.db("dev5");
 		const productsCollection = db.collection("products");
 
-		const { category, color, brand, minPrice, maxPrice, search, sort } =
-			req.query;
+		const { category, brand, sort } = req.query;
 
 		const query = {};
 
-		// simpele filters
+		// Filter op categorie
 		if (category && category !== "all") query.category = category;
-		if (color && color !== "all") query.color = color;
-		if (brand) query.brand = { $regex: brand, $options: "i" };
 
-		if (search) {
-			query.$or = [
-				{ name: { $regex: search, $options: "i" } },
-				{ brand: { $regex: search, $options: "i" } },
-			];
-		}
-
-		if (minPrice || maxPrice) {
-			query.price = {};
-			if (minPrice) query.price.$gte = Number(minPrice);
-			if (maxPrice) query.price.$lte = Number(maxPrice);
-		}
+		// Filter op merk
+		if (brand && brand !== "all") query.brand = brand;
 
 		// sorteeropties
-		let sortObj = { name: 1 };
-		switch (sort) {
-			case "name_desc":
-				sortObj = { name: -1 };
-				break;
-			case "price_asc":
-				sortObj = { price: 1 };
-				break;
-			case "price_desc":
-				sortObj = { price: -1 };
-				break;
+		let sortOption = {};
+
+		// Sorting: price_asc, price_desc, newest
+		if (sort === "price_asc") {
+			sortOption = { price: 1 };
+		} else if (sort === "price_desc") {
+			sortOption = { price: -1 };
+		} else if (sort === "newest") {
+			sortOption = { createdAt: -1 };
+		} else {
+			// default: naam oplopend
+			sortOption = { name: 1 };
 		}
 
 		const products = await productsCollection
 			.find(query)
-			.sort(sortObj)
+			.sort(sortOption)
 			.toArray();
 
 		return res.status(200).json({
@@ -372,7 +360,6 @@ app.delete("/cart/remove/:id", checkToken, async (req, res) => {
 		});
 	}
 });
-
 
 app.listen(process.env.PORT, () => {
 	console.log(`Server is running on port ${process.env.PORT}`);
