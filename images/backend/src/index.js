@@ -98,10 +98,7 @@ app.post("/login", async (req, res) => {
 			}
 		);
 
-		await db.updateOne(
-			{ id: user.id },
-			{ $inc: { amountOfLogins: 1 } }
-		);
+		await db.updateOne({ id: user.id }, { $inc: { amountOfLogins: 1 } });
 
 		res.status(200).send({
 			message: "Succesvol ingelogd",
@@ -164,15 +161,8 @@ app.get("/products", async (req, res) => {
 		const db = client.db("dev5");
 		const productsCollection = db.collection("products");
 
-		const {
-			category,
-			color,
-			brand,
-			minPrice,
-			maxPrice,
-			search,
-			sort,
-		} = req.query;
+		const { category, color, brand, minPrice, maxPrice, search, sort } =
+			req.query;
 
 		const query = {};
 
@@ -227,8 +217,74 @@ app.get("/products", async (req, res) => {
 	}
 });
 
+// Product aan mandje toevoegen
+app.post("/cart/add", checkToken, async (req, res) => {
+	const { productId } = req.body;
 
+	if (!productId) {
+		return res.status(400).json({
+			status: 400,
+			error: "productId is vereist",
+		});
+	}
 
+	const token = req.headers["token"];
+	const userData = jwt.decode(token); // { id: ... }
+	const userId = userData?.id;
+
+	if (!userId) {
+		return res.status(401).json({
+			status: 401,
+			error: "Ongeldige gebruiker",
+		});
+	}
+
+	try {
+		await client.connect();
+		const db = client.db("dev5");
+		const cartCollection = db.collection("cart_items");
+		const productsCollection = db.collection("products");
+
+		// check of product bestaat
+		const product = await productsCollection.findOne({ _id: productId });
+		if (!product) {
+			return res.status(404).json({
+				status: 404,
+				error: "Product niet gevonden",
+			});
+		}
+
+		// als item al in mandje zit → quantity +1
+		const existingItem = await cartCollection.findOne({ userId, productId });
+
+		if (existingItem) {
+			await cartCollection.updateOne(
+				{ _id: existingItem._id },
+				{ $inc: { quantity: 1 } }
+			);
+		} else {
+			await cartCollection.insertOne({
+				_id: uuid(), // eigen id voor cart-item
+				userId,
+				productId,
+				quantity: 1,
+				addedAt: new Date(),
+			});
+		}
+
+		return res.status(200).json({
+			status: 200,
+			message: "Product toegevoegd aan mandje",
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({
+			status: 500,
+			error: "Er ging iets mis bij het toevoegen aan het mandje",
+			value: err,
+		});
+	}
+});
 
 app.listen(process.env.PORT, () => {
 	console.log(`Server is running on port ${process.env.PORT}`);
