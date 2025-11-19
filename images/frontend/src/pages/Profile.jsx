@@ -177,7 +177,9 @@ function Profile() {
 						← Terug
 					</button>
 					<div>
-						<h1 style={{ margin: 0, fontSize: "2rem" }}>Profiel van {user?.username}</h1>
+						<h1 style={{ margin: 0, fontSize: "2rem" }}>
+							Profiel van {user?.username}
+						</h1>
 						<p
 							style={{
 								margin: "4px 0 0",
@@ -186,7 +188,6 @@ function Profile() {
 							}}
 						>
 							Overzicht van je account en mandje.
-
 						</p>
 					</div>
 				</div>
@@ -372,6 +373,7 @@ function Profile() {
 							Totaal: € {totalPrice.toFixed(2)}
 						</h3>
 						<button
+							onClick={() => (window.location.href = "/checkout")}
 							type="button"
 							style={{
 								padding: "9px 14px",
