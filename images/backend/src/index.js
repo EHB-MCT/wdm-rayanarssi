@@ -286,6 +286,94 @@ app.post("/cart/add", checkToken, async (req, res) => {
 	}
 });
 
+// Mandje ophalen voor ingelogde gebruiker
+app.get("/cart/get", checkToken, async (req, res) => {
+	const token = req.headers["token"];
+	const userData = jwt.decode(token);
+	const userId = userData?.id;
+
+	try {
+		await client.connect();
+		const db = client.db("dev5");
+		const cartCollection = db.collection("cart_items");
+		const productsCollection = db.collection("products");
+
+		// Alle cart_items voor deze gebruiker
+		const items = await cartCollection.find({ userId }).toArray();
+
+		// Product info eraan koppelen
+		const detailedItems = [];
+
+		for (const item of items) {
+			const product = await productsCollection.findOne({ _id: item.productId });
+			if (product) {
+				detailedItems.push({
+					...item,
+					product,
+				});
+			}
+		}
+
+		return res.status(200).json({
+			status: 200,
+			cart: detailedItems,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({
+			status: 500,
+			error: "Kon mandje niet ophalen",
+			value: err,
+		});
+	}
+});
+
+// Item uit mandje verwijderen
+app.delete("/cart/remove/:id", checkToken, async (req, res) => {
+	const itemId = req.params.id;
+	const token = req.headers["token"];
+	const userData = jwt.decode(token);
+	const userId = userData?.id;
+
+	try {
+		await client.connect();
+		const db = client.db("dev5");
+		const cartCollection = db.collection("cart_items");
+
+		const item = await cartCollection.findOne({ _id: itemId });
+
+		if (!item) {
+			return res.status(404).json({
+				status: 404,
+				error: "Item niet gevonden",
+			});
+		}
+
+		// extra check: item moet van deze user zijn
+		if (item.userId !== userId) {
+			return res.status(403).json({
+				status: 403,
+				error: "Je mag dit item niet verwijderen",
+			});
+		}
+
+		await cartCollection.deleteOne({ _id: itemId });
+
+		return res.status(200).json({
+			status: 200,
+			message: "Item verwijderd uit mandje",
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({
+			status: 500,
+			error: "Kon item niet verwijderen",
+			value: err,
+		});
+	}
+});
+
+
 app.listen(process.env.PORT, () => {
 	console.log(`Server is running on port ${process.env.PORT}`);
 });
