@@ -361,6 +361,97 @@ app.delete("/cart/remove/:id", checkToken, async (req, res) => {
 	}
 });
 
+// Bestelling aanmaken (checkout)
+app.post("/checkout", checkToken, async (req, res) => {
+	const token = req.headers["token"];
+	const userData = jwt.decode(token);
+	const userId = userData?.id;
+
+	try {
+		await client.connect();
+		const db = client.db("dev5");
+
+		const cartCollection = db.collection("cart_items");
+		const ordersCollection = db.collection("orders");
+		const productsCollection = db.collection("products");
+
+		// Haal cart items op
+		const cartItems = await cartCollection.find({ userId }).toArray();
+
+		if (cartItems.length === 0) {
+			return res.status(400).json({ error: "Je mandje is leeg" });
+		}
+
+		// Haal product details op + bereken totaal
+		let total = 0;
+		const items = [];
+
+		for (const c of cartItems) {
+			const product = await productsCollection.findOne({ _id: c.productId });
+			if (!product) continue;
+
+			items.push({
+				product,
+				quantity: c.quantity,
+			});
+
+			total += product.price * c.quantity;
+		}
+
+		// Bestelling opslaan
+		const order = {
+			_id: uuid(),
+			userId,
+			items,
+			total,
+			createdAt: new Date(),
+		};
+
+		await ordersCollection.insertOne(order);
+
+		// Mandje leegmaken
+		await cartCollection.deleteMany({ userId });
+
+		return res.json({
+			status: 200,
+			message: "Bestelling succesvol geplaatst",
+			order,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({ error: "Kon bestelling niet opslaan" });
+	}
+});
+
+// Bestelgeschiedenis ophalen
+app.get("/orders/history", checkToken, async (req, res) => {
+	const token = req.headers["token"];
+	const userData = jwt.decode(token);
+	const userId = userData?.id;
+
+	try {
+		await client.connect();
+		const db = client.db("dev5");
+		const ordersCollection = db.collection("orders");
+
+		const orders = await ordersCollection
+			.find({ userId })
+			.sort({ createdAt: -1 })
+			.toArray();
+
+		return res.json({
+			status: 200,
+			orders,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({
+			status: 500,
+			error: "Kon bestelgeschiedenis niet ophalen",
+		});
+	}
+});
+3
 app.listen(process.env.PORT, () => {
 	console.log(`Server is running on port ${process.env.PORT}`);
 });
