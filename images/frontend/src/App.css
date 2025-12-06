@@ -412,6 +412,7 @@ a {
 	gap: 0.5rem;
 	transition: transform 0.16s ease, box-shadow 0.16s ease,
 		border-color 0.16s ease;
+	cursor: pointer;
 }
 
 .product-card:hover {

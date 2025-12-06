@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@chakra-ui/react";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import AdminDashboard from "./AdminDashboard";
+import { USER } from "./../models/user";
+const API_URL = "http://localhost:3000";
 
 function Profile() {
 	const token = localStorage.getItem("token");
@@ -53,7 +54,7 @@ function Profile() {
 	const fetchCart = async () => {
 		setLoading(true);
 		try {
-			const res = await fetch(`${API_URL}/cart/get`, {
+			const res = await fetch(`${API_URL}/cart`, {
 				headers: { "Content-Type": "application/json", token },
 			});
 			const data = await res.json();
@@ -74,7 +75,7 @@ function Profile() {
 
 	const handleRemoveItem = async (itemId) => {
 		try {
-			const res = await fetch(`${API_URL}/cart/remove/${itemId}`, {
+			const res = await fetch(`${API_URL}/cart/${itemId}`, {
 				method: "DELETE",
 				headers: { "Content-Type": "application/json", token },
 			});
@@ -103,7 +104,7 @@ function Profile() {
 		0
 	);
 
-	return (
+	return user && user.type === USER.CLIENT ? (
 		<Box className="page profile-page">
 			{message && <div className="toast toast--success">{message}</div>}
 			{error && <div className="toast toast--error">{error}</div>}
@@ -171,13 +172,14 @@ function Profile() {
 									{item.product?.brand} • {item.product?.color}
 								</p>
 								<p className="cart-card-qty">Aantal: {item.quantity || 1}</p>
+								<p className="cart-card-qty">Size: {item.size || "N/A"}</p>
 								<p className="cart-card-price">
 									€ {(item.product?.price || 0).toFixed(2)}
 								</p>
 
 								<button
 									type="button"
-									onClick={() => handleRemoveItem(item._id)}
+									onClick={() => handleRemoveItem(item.cartItemId)}
 									className="btn btn--danger"
 								>
 									Verwijderen
@@ -201,6 +203,8 @@ function Profile() {
 				)}
 			</section>
 		</Box>
+	) : (
+		<AdminDashboard />
 	);
 }
 

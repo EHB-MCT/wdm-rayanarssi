@@ -4,7 +4,7 @@ const cors = require("cors");
 const uuid = require("uuid-v4");
 const bcrypt = require("bcrypt");
 
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const client = new MongoClient(process.env.MONGODB_URI);
 const jwt = require("jsonwebtoken");
 app.use(express.json());
@@ -50,6 +50,7 @@ app.post("/register", async (req, res) => {
 			email: body.email,
 			password: await bcrypt.hash(body.password, 10),
 			amountOfLogins: 0,
+			type: 1, // standaard klant
 		};
 		await db.insertOne(newUser);
 		return res
@@ -205,17 +206,48 @@ app.get("/products", async (req, res) => {
 	}
 });
 
-// Product aan mandje toevoegen
-app.post("/cart/add", checkToken, async (req, res) => {
-	const { productId } = req.body;
+app.get("/product/:id", async (req, res) => {
+	try {
+		await client.connect();
+		const db = client.db("dev5");
+		const productsCollection = db.collection("products");
 
+		const { id } = req.params;
+
+		const query = { _id: id };
+
+		const product = await productsCollection.findOne(query);
+
+		if (!product) {
+			return res.status(404).json({
+				status: 404,
+				error: "Product niet gevonden",
+			});
+		}
+
+		return res.status(200).json({
+			status: 200,
+			product,
+		});
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({
+			status: 500,
+			error: "Kon product niet ophalen",
+			value: err,
+		});
+	}
+});
+
+// Product aan mandje toevoegen
+app.post("/cart/:productId", checkToken, async (req, res) => {
+	const { productId } = req.params;
 	if (!productId) {
 		return res.status(400).json({
 			status: 400,
 			error: "productId is vereist",
 		});
 	}
-
 	const token = req.headers["token"];
 	const userData = jwt.decode(token); // { id: ... }
 	const userId = userData?.id;
@@ -243,7 +275,10 @@ app.post("/cart/add", checkToken, async (req, res) => {
 		}
 
 		// als item al in mandje zit → quantity +1
-		const existingItem = await cartCollection.findOne({ userId, productId });
+		const existingItem = await cartCollection.findOne({
+			userId,
+			productId,
+		});
 
 		if (existingItem) {
 			await cartCollection.updateOne(
@@ -254,7 +289,7 @@ app.post("/cart/add", checkToken, async (req, res) => {
 			await cartCollection.insertOne({
 				_id: uuid(), // eigen id voor cart-item
 				userId,
-				productId,
+				productId: productId,
 				quantity: 1,
 				addedAt: new Date(),
 			});
@@ -275,7 +310,7 @@ app.post("/cart/add", checkToken, async (req, res) => {
 });
 
 // Mandje ophalen voor ingelogde gebruiker
-app.get("/cart/get", checkToken, async (req, res) => {
+app.get("/cart", checkToken, async (req, res) => {
 	const token = req.headers["token"];
 	const userData = jwt.decode(token);
 	const userId = userData?.id;
@@ -285,29 +320,26 @@ app.get("/cart/get", checkToken, async (req, res) => {
 		const db = client.db("dev5");
 		const cartCollection = db.collection("cart_items");
 		const productsCollection = db.collection("products");
-
-		// Alle cart_items voor deze gebruiker
-		const items = await cartCollection.find({ userId }).toArray();
-
-		// Product info eraan koppelen
-		const detailedItems = [];
-
-		for (const item of items) {
-			const product = await productsCollection.findOne({ _id: item.productId });
-			if (product) {
-				detailedItems.push({
-					...item,
-					product,
+		const cart = await cartCollection.find({ userId }).toArray();
+		const cartWithProducts = await Promise.all(
+			cart.map(async (item) => {
+				const productData = await productsCollection.findOne({
+					_id: item.productId,
 				});
-			}
-		}
+
+				return {
+					cartItemId: item._id,
+					product: productData,
+					quantity: item.quantity,
+				};
+			})
+		);
 
 		return res.status(200).json({
 			status: 200,
-			cart: detailedItems,
+			cart: cartWithProducts,
 		});
 	} catch (err) {
-		console.error(err);
 		return res.status(500).json({
 			status: 500,
 			error: "Kon mandje niet ophalen",
@@ -317,12 +349,9 @@ app.get("/cart/get", checkToken, async (req, res) => {
 });
 
 // Item uit mandje verwijderen
-app.delete("/cart/remove/:id", checkToken, async (req, res) => {
+app.delete("/cart/:id", checkToken, async (req, res) => {
 	const itemId = req.params.id;
 	const token = req.headers["token"];
-	const userData = jwt.decode(token);
-	const userId = userData?.id;
-
 	try {
 		await client.connect();
 		const db = client.db("dev5");
@@ -330,22 +359,16 @@ app.delete("/cart/remove/:id", checkToken, async (req, res) => {
 
 		const item = await cartCollection.findOne({ _id: itemId });
 
-		if (!item) {
-			return res.status(404).json({
-				status: 404,
-				error: "Item niet gevonden",
-			});
-		}
+		const quantity = item.quantity;
 
-		// extra check: item moet van deze user zijn
-		if (item.userId !== userId) {
-			return res.status(403).json({
-				status: 403,
-				error: "Je mag dit item niet verwijderen",
-			});
+		if (quantity > 1) {
+			await cartCollection.updateOne(
+				{ _id: itemId },
+				{ $inc: { quantity: -1 } }
+			);
+		} else {
+			await cartCollection.deleteOne({ _id: itemId });
 		}
-
-		await cartCollection.deleteOne({ _id: itemId });
 
 		return res.status(200).json({
 			status: 200,
@@ -367,36 +390,21 @@ app.post("/checkout", checkToken, async (req, res) => {
 	const userData = jwt.decode(token);
 	const userId = userData?.id;
 
+	const { items, total } = req.body;
+
+	if (!items.length || !total) {
+		return res.status(400).json({
+			status: 400,
+			error: "Ontbrekende velden",
+		});
+	}
+
 	try {
 		await client.connect();
 		const db = client.db("dev5");
 
+		const checkoutCollection = db.collection("checkout");
 		const cartCollection = db.collection("cart_items");
-		const ordersCollection = db.collection("orders");
-		const productsCollection = db.collection("products");
-
-		// Haal cart items op
-		const cartItems = await cartCollection.find({ userId }).toArray();
-
-		if (cartItems.length === 0) {
-			return res.status(400).json({ error: "Je mandje is leeg" });
-		}
-
-		// Haal product details op + bereken totaal
-		let total = 0;
-		const items = [];
-
-		for (const c of cartItems) {
-			const product = await productsCollection.findOne({ _id: c.productId });
-			if (!product) continue;
-
-			items.push({
-				product,
-				quantity: c.quantity,
-			});
-
-			total += product.price * c.quantity;
-		}
 
 		// Bestelling opslaan
 		const order = {
@@ -407,7 +415,7 @@ app.post("/checkout", checkToken, async (req, res) => {
 			createdAt: new Date(),
 		};
 
-		await ordersCollection.insertOne(order);
+		await checkoutCollection.insertOne(order);
 
 		// Mandje leegmaken
 		await cartCollection.deleteMany({ userId });
@@ -423,6 +431,52 @@ app.post("/checkout", checkToken, async (req, res) => {
 	}
 });
 
+app.post("/events", checkToken, async (req, res) => {
+	const token = req.headers["token"];
+	const userData = jwt.decode(token);
+	const userId = userData?.id;
+	const { type, timestamp } = req.body;
+	try {
+		await client.connect();
+		const db = client.db("dev5");
+		const eventsCollection = db.collection("events");
+		await eventsCollection.insertOne({
+			userId,
+			type,
+			timestamp,
+		});
+
+		return res.status(200).json({
+			status: 200,
+			message: "Event succesvol opgeslagen",
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({
+			status: 500,
+			error: "Kon event niet opslaan",
+		});
+	}
+});
+
+app.get("/events", checkToken, async (req, res) => {
+	try {
+		await client.connect();
+		const db = client.db("dev5");
+		const eventsCollection = db.collection("events");
+		const events = await eventsCollection.find({}).toArray();
+		return res.status(200).json({
+			status: 200,
+			events,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({
+			status: 500,
+			error: "Kon event niet opslaan",
+		});
+	}
+});
 // Bestelgeschiedenis ophalen
 app.get("/orders/history", checkToken, async (req, res) => {
 	const token = req.headers["token"];
@@ -432,7 +486,7 @@ app.get("/orders/history", checkToken, async (req, res) => {
 	try {
 		await client.connect();
 		const db = client.db("dev5");
-		const ordersCollection = db.collection("orders");
+		const ordersCollection = db.collection("checkout");
 
 		const orders = await ordersCollection
 			.find({ userId })
@@ -451,7 +505,56 @@ app.get("/orders/history", checkToken, async (req, res) => {
 		});
 	}
 });
-3
+
+app.get("/admin", checkToken, async (req, res) => {
+	const token = req.headers["token"];
+	const userData = jwt.decode(token);
+	const userId = userData?.id;
+
+	try {
+		await client.connect();
+		const db = client.db("dev5");
+		const ordersCollection = db.collection("checkout");
+		const usersCollection = db.collection("users");
+		const eventsCollection = db.collection("events");
+
+		const user = await usersCollection.findOne({ id: userId });
+		if (!user || user.type !== 0) {
+			return res.status(403).json({
+				status: 403,
+				error: "Toegang geweigerd",
+			});
+		}
+
+		const today = new Date();
+		today.setHours(0, 0, 0, 0); // 00:00:00 start of today
+
+		const tomorrow = new Date(today);
+		tomorrow.setDate(today.getDate() + 1); // next day 00:00:00
+
+		const totalUsers = await usersCollection.countDocuments({});
+		const totalOrders = await ordersCollection.countDocuments({});
+		const totalRevenue = await ordersCollection
+			.aggregate([{ $sort: { total: -1 } }, { $limit: 1 }])
+			.next();
+		const totalEvents = await eventsCollection.countDocuments();
+		console.log(totalEvents);
+
+		return res.json({
+			status: 200,
+			totalUsers,
+			totalOrders,
+			totalRevenue: totalRevenue ? totalRevenue.total : 0,
+			totalEvents,
+		});
+	} catch (err) {
+		return res.status(500).json({
+			status: 500,
+			error: "Kon bestelgeschiedenis niet ophalen",
+		});
+	}
+});
+
 app.listen(process.env.PORT, () => {
 	console.log(`Server is running on port ${process.env.PORT}`);
 });

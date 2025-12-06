@@ -135,28 +135,24 @@ function Home() {
 		setTimeout(() => setToast(null), 3000);
 	};
 
-	const handleAddToCart = async (product) => {
-		try {
-			const res = await fetch(`${API_URL}/cart/add`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					token,
-				},
-				body: JSON.stringify({ productId: product._id }),
+	const handleEvent = (type) => {
+		fetch(`${API_URL}/events`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json", token },
+			body: JSON.stringify({ type, timestamp: new Date() }),
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				if (!data || data.status !== 200) {
+					console.error(
+						"Kon event niet verzenden:",
+						data.error || "Onbekende fout"
+					);
+				}
+			})
+			.catch((err) => {
+				console.error("Kon event niet verzenden:", err);
 			});
-
-			const data = await res.json();
-
-			if (!res.ok) {
-				showToast("error", data.error || "Kon product niet toevoegen");
-				return;
-			}
-
-			showToast("success", "Product toegevoegd aan je mandje!");
-		} catch (err) {
-			showToast("error", "Er ging iets mis bij het toevoegen");
-		}
 	};
 
 	if (!token) return null;
@@ -171,8 +167,6 @@ function Home() {
 
 				<Box
 					className="home-avatar"
-					as="button"
-					type="button"
 					onClick={() => navigate("/profile")}
 					title={
 						user
@@ -239,13 +233,15 @@ function Home() {
 
 			<div className="home-products-grid">
 				{products.map((product) => (
-					<article key={product._id} className="product-card">
-						<div
-							className="product-card-imageWrapper"
-							onClick={() =>
-								navigate(`/product/${product._id}`, { state: { product } })
-							}
-						>
+					<article
+						key={product._id}
+						className="product-card"
+						onClick={() => {
+							navigate(`/product/${product._id}`);
+							handleEvent("click");
+						}}
+					>
+						<div className="product-card-imageWrapper">
 							{product.image && (
 								<img
 									src={product.image}
@@ -261,14 +257,6 @@ function Home() {
 								{product.brand} • {product.color}
 							</p>
 							<p className="product-card-price">€ {product.price.toFixed(2)}</p>
-
-							<Button
-								type="button"
-								className="btn btn--primary"
-								onClick={() => handleAddToCart(product)}
-							>
-								Toevoegen aan mandje
-							</Button>
 						</div>
 					</article>
 				))}

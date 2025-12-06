@@ -23,7 +23,7 @@ function Checkout() {
 
 	const fetchCart = async () => {
 		try {
-			const res = await fetch(`${API_URL}/cart/get`, {
+			const res = await fetch(`${API_URL}/cart`, {
 				headers: { "Content-Type": "application/json", token },
 			});
 
@@ -42,10 +42,15 @@ function Checkout() {
 	);
 
 	const handleConfirm = async () => {
+		console.log(cart);
 		try {
 			const res = await fetch(`${API_URL}/checkout`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json", token },
+				body: JSON.stringify({
+					items: cart,
+					total: totalPrice,
+				}),
 			});
 
 			const data = await res.json();
@@ -54,7 +59,6 @@ function Checkout() {
 				console.error(data.error || "Kon bestelling niet bevestigen");
 				return;
 			}
-
 			setConfirmed(true); // alleen op success
 		} catch (err) {
 			console.error(err);
@@ -71,7 +75,7 @@ function Checkout() {
 				<button
 					type="button"
 					className="btn btn--chip btn--chip-blue"
-					onClick={() => (window.location.href = "/home")}
+					onClick={() => navigate("/home")}
 				>
 					Terug naar Home
 				</button>
@@ -84,7 +88,7 @@ function Checkout() {
 			<button
 				type="button"
 				className="btn btn--chip btn--chip-blue"
-				onClick={() => (window.location.href = "/profile")}
+				onClick={() => navigate("/profile")}
 			>
 				← Terug
 			</button>
