@@ -1,10 +1,13 @@
-// src/pages/Profile.jsx
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Box } from "@chakra-ui/react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function Profile() {
 	const token = localStorage.getItem("token");
+	const navigate = useNavigate();
+
 	const [user, setUser] = useState(null);
 	const [cart, setCart] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -13,7 +16,7 @@ function Profile() {
 
 	useEffect(() => {
 		if (!token) {
-			window.location.href = "/login";
+			navigate("/login");
 			return;
 		}
 		fetchProfile();
@@ -90,7 +93,7 @@ function Profile() {
 
 	const handleLogout = () => {
 		localStorage.removeItem("token");
-		window.location.href = "/login";
+		navigate("/login");
 	};
 
 	if (!token) return null;
@@ -101,134 +104,40 @@ function Profile() {
 	);
 
 	return (
-		<div
-			style={{
-				minHeight: "100vh",
-				background: "#020617",
-				color: "#e5e7eb",
-				fontFamily: "system-ui",
-				padding: "2rem",
-				boxSizing: "border-box",
-			}}
-		>
-			{/* TOASTS */}
-			{message && (
-				<div
-					style={{
-						position: "fixed",
-						top: "20px",
-						right: "20px",
-						zIndex: 9999,
-						background: "#065f46",
-						color: "white",
-						padding: "14px 18px",
-						borderRadius: "12px",
-						boxShadow: "0 8px 25px rgba(0,0,0,0.25)",
-						fontSize: "0.95rem",
-						fontWeight: 600,
-					}}
-				>
-					{message}
-				</div>
-			)}
-			{error && (
-				<div
-					style={{
-						position: "fixed",
-						top: "20px",
-						right: "20px",
-						zIndex: 9999,
-						background: "#7f1d1d",
-						color: "white",
-						padding: "14px 18px",
-						borderRadius: "12px",
-						boxShadow: "0 8px 25px rgba(0,0,0,0.25)",
-						fontSize: "0.95rem",
-						fontWeight: 600,
-					}}
-				>
-					{error}
-				</div>
-			)}
+		<Box className="page profile-page">
+			{message && <div className="toast toast--success">{message}</div>}
+			{error && <div className="toast toast--error">{error}</div>}
 
-			{/* HEADER */}
-			<header
-				style={{
-					display: "flex",
-					justifyContent: "space-between",
-					alignItems: "center",
-					marginBottom: "2rem",
-				}}
-			>
-				<div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+			<header className="profile-header">
+				<div className="profile-header-left">
 					<button
-						onClick={() => (window.location.href = "/home")}
-						style={{
-							background: "#0ea5e9",
-							padding: "8px 14px",
-							borderRadius: "999px",
-							border: "none",
-							color: "white",
-							fontWeight: 600,
-							cursor: "pointer",
-							fontSize: "0.85rem",
-						}}
+						type="button"
+						onClick={() => navigate("/home")}
+						className="btn btn--chip btn--chip-blue"
 					>
 						← Terug
 					</button>
 					<div>
-						<h1 style={{ margin: 0, fontSize: "2rem" }}>
-							Profiel van {user?.username}
-						</h1>
-						<p
-							style={{
-								margin: "4px 0 0",
-								color: "#9ca3af",
-								fontSize: "0.9rem",
-							}}
-						>
+						<h1 className="profile-title">Profiel van {user?.username}</h1>
+						<p className="profile-subtitle">
 							Overzicht van je account en mandje.
 						</p>
 					</div>
 				</div>
 
 				<button
+					type="button"
 					onClick={handleLogout}
-					style={{
-						background: "#dc2626",
-						padding: "10px 16px",
-						borderRadius: "999px",
-						border: "none",
-						color: "white",
-						fontWeight: 600,
-						cursor: "pointer",
-						fontSize: "0.9rem",
-					}}
+					className="btn btn--chip btn--chip-red"
 				>
 					Uitloggen
 				</button>
 			</header>
 
-			{/* MANDJE */}
-			<section
-				style={{
-					background: "#020617",
-					borderRadius: "16px",
-					border: "1px solid #1f2937",
-					padding: "1.5rem",
-					minHeight: "200px",
-				}}
-			>
-				<div
-					style={{
-						display: "flex",
-						justifyContent: "space-between",
-						alignItems: "center",
-						marginBottom: "0.75rem",
-					}}
-				>
-					<h2 style={{ margin: 0, fontSize: "1.1rem" }}>Mijn mandje</h2>
-					<span style={{ fontSize: "0.85rem", color: "#9ca3af" }}>
+			<section className="cart-section">
+				<div className="cart-header">
+					<h2 className="cart-title">Mijn mandje</h2>
+					<span className="cart-count">
 						{loading
 							? "Aan het laden..."
 							: `${cart.length} item(s) in je mandje`}
@@ -236,122 +145,40 @@ function Profile() {
 				</div>
 
 				{!loading && cart.length === 0 && (
-					<p style={{ fontSize: "0.9rem", color: "#9ca3af" }}>
+					<p className="cart-hint">
 						Je mandje is nog leeg. Voeg producten toe vanuit de webshop.
 					</p>
 				)}
 
-				{loading && (
-					<p style={{ fontSize: "0.9rem", color: "#9ca3af" }}>
-						Mandje aan het ophalen…
-					</p>
-				)}
+				{loading && <p className="cart-hint">Mandje aan het ophalen…</p>}
 
-				<div
-					style={{
-						display: "grid",
-						gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-						gap: "1.2rem",
-						marginTop: "0.75rem",
-					}}
-				>
+				<div className="cart-grid">
 					{cart.map((item) => (
-						<article
-							key={item._id}
-							style={{
-								background: "#0f172a",
-								borderRadius: "12px",
-								border: "1px solid #1f2937",
-								overflow: "hidden",
-								display: "flex",
-								flexDirection: "column",
-							}}
-						>
-							{/* IMG */}
-							<div
-								style={{
-									width: "100%",
-									paddingTop: "60%",
-									position: "relative",
-									background: "#020617",
-								}}
-							>
+						<article key={item._id} className="cart-card">
+							<div className="cart-card-imageWrapper">
 								{item.product?.image && (
 									<img
 										src={item.product.image}
 										alt={item.product.name}
-										style={{
-											position: "absolute",
-											inset: 0,
-											width: "100%",
-											height: "100%",
-											objectFit: "cover",
-										}}
+										className="cart-card-image"
 									/>
 								)}
 							</div>
 
-							{/* TEXT */}
-							<div
-								style={{
-									padding: "10px 12px 12px",
-									display: "flex",
-									flexDirection: "column",
-									gap: "4px",
-								}}
-							>
-								<h3
-									style={{
-										margin: 0,
-										fontSize: "0.95rem",
-										fontWeight: 600,
-									}}
-								>
-									{item.product?.name}
-								</h3>
-								<p
-									style={{
-										margin: 0,
-										fontSize: "0.8rem",
-										color: "#9ca3af",
-									}}
-								>
+							<div className="cart-card-content">
+								<h3 className="cart-card-title">{item.product?.name}</h3>
+								<p className="cart-card-meta">
 									{item.product?.brand} • {item.product?.color}
 								</p>
-								<p
-									style={{
-										margin: "4px 0 0",
-										fontSize: "0.85rem",
-										color: "#9ca3af",
-									}}
-								>
-									Aantal: {item.quantity || 1}
-								</p>
-								<p
-									style={{
-										margin: "2px 0 0",
-										fontSize: "0.9rem",
-										fontWeight: 600,
-									}}
-								>
+								<p className="cart-card-qty">Aantal: {item.quantity || 1}</p>
+								<p className="cart-card-price">
 									€ {(item.product?.price || 0).toFixed(2)}
 								</p>
 
 								<button
 									type="button"
 									onClick={() => handleRemoveItem(item._id)}
-									style={{
-										marginTop: "8px",
-										width: "100%",
-										padding: "8px 10px",
-										borderRadius: "999px",
-										border: "none",
-										cursor: "pointer",
-										background: "#ef4444",
-										color: "white",
-										fontWeight: 600,
-										fontSize: "0.85rem",
-									}}
+									className="btn btn--danger"
 								>
 									Verwijderen
 								</button>
@@ -361,37 +188,19 @@ function Profile() {
 				</div>
 
 				{cart.length > 0 && (
-					<div
-						style={{
-							marginTop: "1.25rem",
-							display: "flex",
-							justifyContent: "space-between",
-							alignItems: "center",
-						}}
-					>
-						<h3 style={{ margin: 0, fontSize: "1rem" }}>
-							Totaal: € {totalPrice.toFixed(2)}
-						</h3>
+					<div className="cart-footer">
+						<h3 className="cart-total">Totaal: € {totalPrice.toFixed(2)}</h3>
 						<button
-							onClick={() => (window.location.href = "/checkout")}
 							type="button"
-							style={{
-								padding: "9px 14px",
-								borderRadius: "999px",
-								border: "none",
-								cursor: "pointer",
-								background: "linear-gradient(135deg,#22c55e,#0ea5e9)",
-								color: "#020617",
-								fontWeight: 700,
-								fontSize: "0.9rem",
-							}}
+							onClick={() => navigate("/checkout")}
+							className="btn btn--primary btn--chip-wide"
 						>
 							Naar checkout
 						</button>
 					</div>
 				)}
 			</section>
-		</div>
+		</Box>
 	);
 }
 

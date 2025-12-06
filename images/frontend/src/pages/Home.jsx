@@ -1,10 +1,48 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Box, Heading, Text, Button, Select } from "@chakra-ui/react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+const categories = [
+	{ id: "all", label: "Alles" },
+	{ id: "shoes", label: "Shoes" },
+	{ id: "pants", label: "Broeken" },
+	{ id: "tops", label: "Tops" },
+	{ id: "jackets", label: "Jassen" },
+];
+
+const brands = [
+	"all",
+	"AirDrop",
+	"AirFlex",
+	"BaseLayer",
+	"Bloc Studio",
+	"Courtline",
+	"FadeLab",
+	"Flight Air",
+	"Grey",
+	"HardWear",
+	"Jordan",
+	"JumpRise",
+	"Nightshift",
+	"NXT Division",
+	"Railway",
+	"Skyline",
+	"Softlane",
+	"Sphere",
+	"Studio 13",
+	"Subway Kids",
+	"Trackside",
+	"UrbanLayer",
+	"Wave District",
+	"YardLab",
+];
+
 function Home() {
+	const navigate = useNavigate();
 	const token = localStorage.getItem("token");
+	const [toast, setToast] = useState(null);
 
 	const [user, setUser] = useState(null);
 	const [profileError, setProfileError] = useState("");
@@ -12,8 +50,6 @@ function Home() {
 	const [products, setProducts] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
-
-	const [toast, setToast] = useState(null);
 
 	const [searchParams, setSearchParams] = useSearchParams();
 
@@ -23,37 +59,9 @@ function Home() {
 	const [brand, setBrand] = useState(searchParams.get("brand") || "all");
 	const [sort, setSort] = useState(searchParams.get("sort") || "price_asc");
 
-	const brands = [
-		"all",
-		"AirDrop",
-		"AirFlex",
-		"BaseLayer",
-		"Bloc Studio",
-		"Courtline",
-		"FadeLab",
-		"Flight Air",
-		"Grey",
-		"HardWear",
-		"Jordan",
-		"JumpRise",
-		"Nightshift",
-		"NXT Division",
-		"Railway",
-		"Skyline",
-		"Softlane",
-		"Sphere",
-		"Studio 13",
-		"Subway Kids",
-		"Trackside",
-		"UrbanLayer",
-		"Wave District",
-		"YardLab",
-	];
-
-	// PROFIEL OPHALEN
 	useEffect(() => {
 		if (!token) {
-			window.location.href = "/login";
+			navigate("/login");
 			return;
 		}
 		fetchProfile();
@@ -84,7 +92,6 @@ function Home() {
 		}
 	};
 
-	//  PRODUCTEN OPHALEN MET FILTERS
 	useEffect(() => {
 		fetchProducts();
 	}, [category, brand, sort]);
@@ -123,13 +130,9 @@ function Home() {
 		}
 	};
 
-	// TOAST
 	const showToast = (type, text) => {
 		setToast({ type, text });
-
-		setTimeout(() => {
-			setToast(null);
-		}, 3000); // verdwijnt na 3 sec
+		setTimeout(() => setToast(null), 3000);
 	};
 
 	const handleAddToCart = async (product) => {
@@ -162,46 +165,15 @@ function Home() {
 		user && user.username ? user.username.trim().charAt(0).toUpperCase() : "U";
 
 	return (
-		<div
-			style={{
-				minHeight: "100vh",
-				width: "100vw",
-				background: "#f0f0f0",
-				padding: "2rem",
-				boxSizing: "border-box",
-				fontFamily: "system-ui",
-			}}
-		>
-			{/* HEADER */}
-			<header
-				style={{
-					display: "flex",
-					justifyContent: "space-between",
-					alignItems: "center",
-					marginBottom: "2rem",
-				}}
-			>
-				<h1 style={{ fontSize: "2rem", margin: 0, color: "#111827" }}>
-					StreetLab Store
-				</h1>
+		<Box className="page home-page">
+			<header className="home-header">
+				<Heading className="home-title">StreetLab Store</Heading>
 
-				{/* AVATAR CIRCLE */}
-				<div
-					onClick={() => (window.location.href = "/profile")}
-					style={{
-						width: "40px",
-						height: "40px",
-						borderRadius: "999px",
-						background: "radial-gradient(circle at 30% 30%, #22c55e, #0ea5e9)",
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						fontSize: "1.1rem",
-						fontWeight: 700,
-						color: "#020617",
-						cursor: "pointer",
-						boxShadow: "0 6px 14px rgba(0,0,0,0.25)",
-					}}
+				<Box
+					className="home-avatar"
+					as="button"
+					type="button"
+					onClick={() => navigate("/profile")}
 					title={
 						user
 							? `${user.username} – klik om naar je profiel te gaan`
@@ -209,249 +181,110 @@ function Home() {
 					}
 				>
 					{initial}
-				</div>
+				</Box>
 			</header>
 
-			{/* FILTERS */}
-			<section
-				style={{
-					marginBottom: "1.5rem",
-					display: "flex",
-					flexDirection: "column",
-					gap: "1rem",
-				}}
-			>
-				{/* Category buttons */}
-				<div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-					{[
-						{ id: "all", label: "Alles" },
-						{ id: "shoes", label: "Shoes" },
-						{ id: "pants", label: "Broeken" },
-						{ id: "tops", label: "Tops" },
-						{ id: "jackets", label: "Jassen" },
-					].map((cat) => (
+			<section className="home-filters">
+				<div className="home-category-buttons">
+					{categories.map((cat) => (
 						<button
 							key={cat.id}
+							type="button"
+							className={category === cat.id ? "chip chip--active" : "chip"}
 							onClick={() => setCategory(cat.id)}
-							style={{
-								padding: "8px 14px",
-								borderRadius: "999px",
-								border: "1px solid #1f2937",
-								background: category === cat.id ? "#e5e7eb" : "#0f172a",
-								color: category === cat.id ? "#020617" : "#e5e7eb",
-								fontSize: "0.85rem",
-								cursor: "pointer",
-								fontWeight: category === cat.id ? 700 : 400,
-							}}
 						>
 							{cat.label}
 						</button>
 					))}
 				</div>
 
-				{/* Brands + Sorting */}
-				<div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-					<select
+				<div className="home-select-row">
+					<Select
 						value={brand}
 						onChange={(e) => setBrand(e.target.value)}
-						style={{
-							padding: "8px 12px",
-							borderRadius: "999px",
-							background: "#0f172a",
-							color: "#e5e7eb",
-							border: "1px solid #1f2937",
-						}}
+						className="home-select"
 					>
 						{brands.map((b) => (
 							<option key={b} value={b}>
 								{b === "all" ? "Alle merken" : b}
 							</option>
 						))}
-					</select>
+					</Select>
 
-					<select
+					<Select
 						value={sort}
 						onChange={(e) => setSort(e.target.value)}
-						style={{
-							padding: "8px 12px",
-							borderRadius: "999px",
-							background: "#0f172a",
-							color: "#e5e7eb",
-							border: "1px solid #1f2937",
-						}}
+						className="home-select"
 					>
 						<option value="price_asc">Prijs: laag → hoog</option>
 						<option value="price_desc">Prijs: hoog → laag</option>
 						<option value="newest">Nieuwste eerst</option>
-					</select>
+					</Select>
 				</div>
 			</section>
 
-			{/* Kleine hint / error (optioneel) */}
-			{profileError && (
-				<p style={{ color: "#b91c1c", fontSize: "0.9rem" }}>{profileError}</p>
-			)}
+			{profileError && <Text className="home-error-text">{profileError}</Text>}
 
-			{/* PRODUCTS SECTIE */}
-			<h2 style={{ margin: "0 0 1rem 0", fontSize: "1.2rem" }}>Products</h2>
+			<h2 className="home-products-title">Products</h2>
 
-			{error && (
-				<div
-					style={{
-						background: "#7f1d1d",
-						border: "1px solid #f87171",
-						color: "#fee2e2",
-						padding: "8px 10px",
-						borderRadius: "8px",
-						marginBottom: "10px",
-						fontSize: "0.9rem",
-					}}
-				>
-					{error}
-				</div>
-			)}
+			{error && <div className="msg msg--error">{error}</div>}
 
 			{loading && (
-				<p style={{ fontSize: "0.9rem", color: "#9ca3af" }}>
-					Streetwear aan het laden…
-				</p>
+				<p className="home-loading-text">Streetwear aan het laden…</p>
 			)}
 
 			{!loading && products.length === 0 && !error && (
-				<p style={{ fontSize: "0.9rem", color: "#9ca3af" }}>
-					Geen producten gevonden.
-				</p>
+				<p className="home-loading-text">Geen producten gevonden.</p>
 			)}
 
-			<div
-				style={{
-					display: "grid",
-					gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-					gap: "1.5rem",
-					marginTop: "0.5rem",
-				}}
-			>
+			<div className="home-products-grid">
 				{products.map((product) => (
-					<article
-						key={product._id}
-						style={{
-							background: "#0f172a",
-							borderRadius: "14px",
-							border: "1px solid #1f2937",
-							overflow: "hidden",
-							display: "flex",
-							flexDirection: "column",
-							boxShadow: "0 14px 30px rgba(0,0,0,0.45)",
-						}}
-					>
-						{/* IMAGE */}
+					<article key={product._id} className="product-card">
 						<div
-							style={{
-								width: "100%",
-								paddingTop: "65%",
-								position: "relative",
-								background: "#020617",
-							}}
+							className="product-card-imageWrapper"
+							onClick={() =>
+								navigate(`/product/${product._id}`, { state: { product } })
+							}
 						>
 							{product.image && (
 								<img
 									src={product.image}
 									alt={product.name}
-									style={{
-										position: "absolute",
-										inset: 0,
-										width: "100%",
-										height: "100%",
-										objectFit: "cover",
-									}}
+									className="product-card-image"
 								/>
 							)}
 						</div>
 
-						{/* TEXT */}
-						<div
-							style={{
-								padding: "10px 12px 12px",
-								display: "flex",
-								flexDirection: "column",
-								gap: "4px",
-							}}
-						>
-							<h3
-								style={{
-									margin: 0,
-									fontSize: "0.95rem",
-									fontWeight: 600,
-									color: "#e0e7ff",
-								}}
-							>
-								{product.name}
-							</h3>
-							<p
-								style={{
-									margin: 0,
-									fontSize: "0.8rem",
-									color: "#9ca3af",
-								}}
-							>
+						<div className="product-card-content">
+							<h3 className="product-card-title">{product.name}</h3>
+							<p className="product-card-meta">
 								{product.brand} • {product.color}
 							</p>
-							<p
-								style={{
-									margin: "4px 0 0",
-									fontSize: "0.9rem",
-									fontWeight: 600,
-									color: "#34d399",
-								}}
-							>
-								€ {product.price.toFixed(2)}
-							</p>
+							<p className="product-card-price">€ {product.price.toFixed(2)}</p>
 
-							<button
+							<Button
 								type="button"
+								className="btn btn--primary"
 								onClick={() => handleAddToCart(product)}
-								style={{
-									marginTop: "8px",
-									width: "100%",
-									padding: "8px 10px",
-									borderRadius: "999px",
-									border: "none",
-									cursor: "pointer",
-									background: "linear-gradient(135deg,#22c55e,#0ea5e9)",
-									color: "#020617",
-									fontWeight: 600,
-									fontSize: "0.9rem",
-								}}
 							>
 								Toevoegen aan mandje
-							</button>
+							</Button>
 						</div>
-
-						{/* FLOATING TOAST */}
-						{toast && (
-							<div
-								style={{
-									position: "fixed",
-									top: "20px",
-									right: "20px",
-									zIndex: 9999,
-									background: toast.type === "success" ? "#065f46" : "#7f1d1d",
-									color: "white",
-									padding: "16px 20px",
-									borderRadius: "12px",
-									fontSize: "1rem",
-									fontWeight: 600,
-									transition: "all 0.3s ease",
-									animation: "fadeIn 0.3s",
-								}}
-							>
-								{toast.text}
-							</div>
-						)}
 					</article>
 				))}
 			</div>
-		</div>
+			{toast && (
+				<div
+					className={
+						toast.type === "success"
+							? "toast toast--success"
+							: "toast toast--error"
+					}
+				>
+					{toast.text}
+				</div>
+			)}
+		</Box>
 	);
 }
 

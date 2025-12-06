@@ -5,7 +5,7 @@ WORKDIR /usr/app
 # Only copy package files first (better for caching)
 COPY package*.json ./
 
-RUN npm install --quiet
+RUN npm install --quiet  --legacy-peer-deps
 
 # Copy the rest of the app
 COPY . .
