@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Box } from "@chakra-ui/react";
 import AdminDashboard from "./AdminDashboard";
 import { USER } from "./../models/user";
+
 const API_URL = "http://localhost:3000";
 
 function Profile() {
@@ -15,6 +16,9 @@ function Profile() {
 	const [message, setMessage] = useState("");
 	const [error, setError] = useState("");
 
+	const [orders, setOrders] = useState([]);
+	const [ordersLoading, setOrdersLoading] = useState(true);
+
 	useEffect(() => {
 		if (!token) {
 			navigate("/login");
@@ -22,6 +26,7 @@ function Profile() {
 		}
 		fetchProfile();
 		fetchCart();
+		fetchOrders();
 	}, []);
 
 	const showMessage = (text) => {
@@ -70,6 +75,28 @@ function Profile() {
 			setCart([]);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+const fetchOrders = async () => {
+		setOrdersLoading(true);
+		try {
+			const res = await fetch(`${API_URL}/orders/history`, {
+				headers: { "Content-Type": "application/json", token },
+			});
+			const data = await res.json();
+			if (!res.ok) {
+				showError(data.error || "Kon bestelgeschiedenis niet ophalen");
+				setOrders([]);
+				return;
+			}
+			setOrders(data.orders || []);
+		} catch (err) {
+			console.error(err);
+			showError("Er ging iets mis bij het ophalen van je bestelgeschiedenis");
+			setOrders([]);
+		} finally {
+			setOrdersLoading(false);
 		}
 	};
 
@@ -201,6 +228,63 @@ function Profile() {
 						</button>
 					</div>
 				)}
+			</section>
+
+			<section className="orders-section">
+				<div className="orders-header">
+					<h2 className="orders-title">Bestelgeschiedenis</h2>
+					<span className="orders-count">
+						{ordersLoading
+							? "Bestellingen aan het laden…"
+							: `${orders.length} bestelling(en)`}
+					</span>
+				</div>
+
+				{!ordersLoading && orders.length === 0 && (
+					<p className="orders-hint">
+						Je hebt nog geen bestellingen geplaatst.
+					</p>
+				)}
+
+				{ordersLoading && <p className="orders-hint">Gegevens aan het ophalen…</p>}
+
+				<div className="orders-list">
+					{orders.map((order) => (
+						<article key={order._id} className="order-card">
+							<div className="order-card-header">
+								<h3 className="order-card-title">
+									Bestelling #{order._id?.slice(-6) || ""}
+								</h3>
+								<p className="order-card-date">
+									{order.createdAt
+										? new Date(order.createdAt).toLocaleString("nl-BE")
+										: "Onbekende datum"}
+								</p>
+							</div>
+
+							<div className="order-card-body">
+								<p className="order-card-line">
+									<span>Totaal:</span>
+									<span>
+										€{" "}
+										{order.total
+											? Number(order.total).toFixed(2)
+											: "0.00"}
+									</span>
+								</p>
+								<p className="order-card-line">
+									<span>Items:</span>
+									<span>{order.items ? order.items.length : "-"}</span>
+								</p>
+								{order.status && (
+									<p className="order-card-status">
+										Status: <strong>{order.status}</strong>
+									</p>
+								)}
+							</div>
+						</article>
+					))}
+				</div>
 			</section>
 		</Box>
 	) : (

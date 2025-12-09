@@ -598,6 +598,107 @@ a {
 	font-size: 1rem;
 }
 
+/* History */
+.orders-section {
+	margin-top: 1.8rem;
+	background: #020617;
+	border-radius: 18px;
+	border: 1px solid #1f2937;
+	padding: 1.4rem 1.3rem 1.7rem;
+}
+
+.orders-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.orders-title {
+	margin: 0;
+	font-size: 1.12rem;
+}
+
+.orders-count {
+	font-size: 0.85rem;
+	color: #9ca3af;
+}
+
+.orders-hint {
+	margin-top: 0.8rem;
+	font-size: 0.9rem;
+	color: #9ca3af;
+}
+
+/* list + cards */
+
+.orders-list {
+	margin-top: 1rem;
+	display: grid;
+	gap: 0.9rem;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.order-card {
+	background: #020617;
+	border-radius: 12px;
+	border: 1px solid #1f2937;
+	padding: 0.75rem 0.8rem 0.85rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+}
+
+.order-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 0.6rem;
+}
+
+.order-card-title {
+	margin: 0;
+	font-size: 0.95rem;
+	font-weight: 600;
+}
+
+.order-card-date {
+	margin: 0;
+	font-size: 0.78rem;
+	color: #9ca3af;
+	text-align: right;
+}
+
+.order-card-body {
+	margin-top: 0.2rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	font-size: 0.85rem;
+}
+
+.order-card-line {
+	display: flex;
+	justify-content: space-between;
+	gap: 0.8rem;
+	margin: 0;
+}
+
+.order-card-line span:first-child {
+	color: #9ca3af;
+}
+
+.order-card-status {
+	margin: 0.2rem 0 0;
+	font-size: 0.82rem;
+	color: #e5e7eb;
+}
+
+.order-card-status strong {
+	color: #22c55e;
+	font-weight: 600;
+}
+
 /* ============================
    CHECKOUT PAGE
 ============================ */
