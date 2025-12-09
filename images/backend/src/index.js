@@ -536,7 +536,7 @@ app.get("/admin", checkToken, async (req, res) => {
 		const totalUsers = await usersCollection.countDocuments({});
 		const totalOrders = await ordersCollection.countDocuments({});
 		const totalRevenue = await ordersCollection
-			.aggregate([{ $sort: { total: -1 } }, { $limit: 1 }])
+			.aggregate([{ $group: { _id: null, total: { $sum: "$total" } } }, { $limit: 1 }])
 			.next();
 		const totalEvents = await eventsCollection.countDocuments();
 		console.log(totalEvents);
