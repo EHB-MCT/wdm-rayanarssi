@@ -44,6 +44,12 @@ function Home() {
 	const token = localStorage.getItem("token");
 	const [toast, setToast] = useState(null);
 
+	useEffect(() => {
+		if (!token) {
+			navigate("/login");
+		}
+	}, [token, navigate]);
+
 	const [user, setUser] = useState(null);
 	const [profileError, setProfileError] = useState("");
 
