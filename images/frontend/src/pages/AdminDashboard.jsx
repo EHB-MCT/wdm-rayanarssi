@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Heading, Text, Input, Alert } from "@chakra-ui/react";
+import { Box, Heading, Text, Alert } from "@chakra-ui/react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -10,8 +10,6 @@ function AdminDashboard() {
 
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
-	const [stats, setStats] = useState(null);
-	const [userFilter, setUserFilter] = useState("");
 
 	const [data, setData] = useState(null);
 
@@ -40,6 +38,11 @@ function AdminDashboard() {
 		fetchData();
 	}, [token, navigate]);
 
+	const handleLogout = () => {
+		localStorage.removeItem("token");
+		navigate("/login");
+	};
+
 	if (loading) {
 		return (
 			<Box className="page admin-page">
@@ -59,6 +62,16 @@ function AdminDashboard() {
 
 	return (
 		<Box className="page admin-page">
+			<div style={{ display: "flex", justifyContent: "flex-end" }}>
+				<button
+					type="button"
+					onClick={handleLogout}
+					className="btn btn--chip btn--chip-red"
+				>
+					Uitloggen
+				</button>
+			</div>
+
 			<Heading className="admin-title" mb={6}>
 				Admin Dashboard
 			</Heading>
@@ -124,13 +137,6 @@ function AdminDashboard() {
 					Gebruikers & profielen
 				</Heading>
 
-				<Input
-					placeholder="Filter op e-mail of UID"
-					className="admin-filter-input"
-					value={userFilter}
-					onChange={(e) => setUserFilter(e.target.value)}
-				/>
-
 				<div className="admin-table-wrapper">
 					<table className="admin-table">
 						<thead>
@@ -138,7 +144,7 @@ function AdminDashboard() {
 								<th>Username</th>
 								<th>E-mail</th>
 								<th className="admin-th-num">Events</th>
-								<th>Laatst actief</th>
+								<th>Aantal Logins</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -147,7 +153,7 @@ function AdminDashboard() {
 									<td>{u.username}</td>
 									<td>{u.email}</td>
 									<td className="admin-td-num">{u.eventsCount}</td>
-									<td>{u.lastActive}</td>
+									<td>{u.loginCount}</td>
 								</tr>
 							))} */}
 						</tbody>

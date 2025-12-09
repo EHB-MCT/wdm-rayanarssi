@@ -4,7 +4,7 @@ const cors = require("cors");
 const uuid = require("uuid-v4");
 const bcrypt = require("bcrypt");
 
-const { MongoClient, ObjectId } = require("mongodb");
+const { MongoClient } = require("mongodb");
 const client = new MongoClient(process.env.MONGODB_URI);
 const jwt = require("jsonwebtoken");
 app.use(express.json());
@@ -477,6 +477,7 @@ app.get("/events", checkToken, async (req, res) => {
 		});
 	}
 });
+
 // Bestelgeschiedenis ophalen
 app.get("/orders/history", checkToken, async (req, res) => {
 	const token = req.headers["token"];
