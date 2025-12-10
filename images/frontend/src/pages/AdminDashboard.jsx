@@ -143,19 +143,21 @@ function AdminDashboard() {
 							<tr>
 								<th>Username</th>
 								<th>E-mail</th>
+								<th>Aantal Bestellingen</th>
 								<th className="admin-th-num">Events</th>
 								<th>Aantal Logins</th>
 							</tr>
 						</thead>
 						<tbody>
-							{/* {filteredUsers.map((u) => (
-								<tr key={u.uid}>
+							{data.users?.map((u) => (
+								<tr key={u.id}>
 									<td>{u.username}</td>
 									<td>{u.email}</td>
-									<td className="admin-td-num">{u.eventsCount}</td>
+									<td >{u.orderCount}</td>
+									<td >{u.eventsCount}</td>
 									<td>{u.loginCount}</td>
 								</tr>
-							))} */}
+							))}
 						</tbody>
 					</table>
 				</div>

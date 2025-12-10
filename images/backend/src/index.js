@@ -146,7 +146,6 @@ const getUserFromToken = async (token) => {
 	return user;
 };
 
-
 app.get("/profile", checkToken, async (req, res) => {
 	const token = req.headers["token"];
 	const userData = jwt.decode(token);
@@ -281,7 +280,7 @@ app.put("/products/:id/stock", checkToken, async (req, res) => {
 		const productsCollection = db.collection("products");
 
 		const result = await productsCollection.updateOne(
-			{ _id: id }, 
+			{ _id: id },
 			{ $set: { stock: parsedStock } }
 		);
 
@@ -605,10 +604,55 @@ app.get("/admin", checkToken, async (req, res) => {
 		const totalUsers = await usersCollection.countDocuments({});
 		const totalOrders = await ordersCollection.countDocuments({});
 		const totalRevenue = await ordersCollection
-			.aggregate([{ $group: { _id: null, total: { $sum: "$total" } } }, { $limit: 1 }])
+			.aggregate([
+				{ $group: { _id: null, total: { $sum: "$total" } } },
+				{ $limit: 1 },
+			])
 			.next();
 		const totalEvents = await eventsCollection.countDocuments();
-		console.log(totalEvents);
+
+		const eventsPerUser = await eventsCollection
+			.aggregate([
+				{
+					$group: {
+						_id: "$userId",
+						eventsCount: { $sum: 1 },
+					},
+				},
+			])
+			.toArray();
+
+		const eventsMap = {};
+		eventsPerUser.forEach((e) => {
+			eventsMap[e._id] = e.eventsCount;
+		});
+
+		const allUsers = await usersCollection.find({ type: { $ne: 0 } }).toArray();
+
+		const ordersPerUser = await ordersCollection
+			.aggregate([
+				{
+					$group: {
+						_id: "$userId",
+						orderCount: { $sum: 1 },
+					},
+				},
+			])
+			.toArray();
+
+		const ordersMap = {};
+		ordersPerUser.forEach((o) => {
+			ordersMap[o._id] = o.orderCount;
+		});
+
+		const usersWithStats = allUsers.map((u) => ({
+			id: u.id,
+			username: u.username,
+			email: u.email,
+			eventsCount: eventsMap[u.id] || 0,
+			loginCount: u.amountOfLogins || 0,
+			orderCount: ordersMap[u.id] || 0,
+		}));
 
 		return res.json({
 			status: 200,
@@ -616,6 +660,7 @@ app.get("/admin", checkToken, async (req, res) => {
 			totalOrders,
 			totalRevenue: totalRevenue ? totalRevenue.total : 0,
 			totalEvents,
+			users: usersWithStats,
 		});
 	} catch (err) {
 		return res.status(500).json({
