@@ -460,9 +460,60 @@ a {
 	color: #34d399;
 }
 
-/* ============================
-   PROFILE / CART PAGE
-============================ */
+.product-card-admin {
+	margin-top: 0.7rem;
+	padding-top: 0.55rem;
+	border-top: 1px solid #1f2937;
+}
+
+.product-card-admin-label {
+	margin: 0 0 0.35rem;
+	font-size: 0.78rem;
+	color: #9ca3af;
+}
+
+.product-card-admin-label strong {
+	color: #22c55e;
+	font-weight: 600;
+}
+
+.product-card-admin-row {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.4rem;
+	margin-top: 0.15rem;
+}
+
+.product-card-stockInput {
+	width: 100%;
+	max-width: 110px;
+	height: 30px;
+	padding: 0 0.6rem;
+	border-radius: 999px;
+	border: 1px solid #1f2937;
+	background: #020617;
+	color: #ffffff;
+	font-size: 0.78rem;
+	line-height: 1;
+}
+
+.product-card-stockInput:focus {
+	outline: none;
+	border-color: #38bdf8;
+	box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4);
+}
+
+.product-card-stockButton {
+	width: 100%;
+	font-size: 0.8rem;
+	padding-inline: 0.9rem;
+	white-space: nowrap;
+	display: inline-flex;
+	justify-content: center;
+}
+
+/* PROFILE / CART PAGE */
 
 .profile-page {
 	padding-top: 2rem;

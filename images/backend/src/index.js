@@ -135,6 +135,18 @@ const checkToken = (req, res, next) => {
 	}
 };
 
+const getUserFromToken = async (token) => {
+	const userData = jwt.decode(token); // { id: ... }
+	if (!userData || !userData.id) return null;
+
+	await client.connect();
+	const db = client.db("dev5");
+	const usersCollection = db.collection("users");
+	const user = await usersCollection.findOne({ id: userData.id });
+	return user;
+};
+
+
 app.get("/profile", checkToken, async (req, res) => {
 	const token = req.headers["token"];
 	const userData = jwt.decode(token);
@@ -234,6 +246,63 @@ app.get("/product/:id", async (req, res) => {
 		res.status(500).json({
 			status: 500,
 			error: "Kon product niet ophalen",
+			value: err,
+		});
+	}
+});
+
+app.put("/products/:id/stock", checkToken, async (req, res) => {
+	const token = req.headers["token"];
+	const { id } = req.params;
+	const { stock } = req.body;
+
+	try {
+		const user = await getUserFromToken(token);
+
+		// check of user admin is
+		if (!user || user.type !== 0) {
+			return res.status(403).json({
+				status: 403,
+				error: "Toegang geweigerd: enkel admin kan stock aanpassen",
+			});
+		}
+
+		// check stock value
+		const parsedStock = Number(stock);
+		if (Number.isNaN(parsedStock) || parsedStock < 0) {
+			return res.status(400).json({
+				status: 400,
+				error: "Stock moet een positief getal zijn",
+			});
+		}
+
+		await client.connect();
+		const db = client.db("dev5");
+		const productsCollection = db.collection("products");
+
+		const result = await productsCollection.updateOne(
+			{ _id: id }, 
+			{ $set: { stock: parsedStock } }
+		);
+
+		if (!result.matchedCount) {
+			return res.status(404).json({
+				status: 404,
+				error: "Product niet gevonden",
+			});
+		}
+
+		return res.status(200).json({
+			status: 200,
+			message: "Stock succesvol aangepast",
+			productId: id,
+			stock: parsedStock,
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({
+			status: 500,
+			error: "Kon stock niet updaten",
 			value: err,
 		});
 	}

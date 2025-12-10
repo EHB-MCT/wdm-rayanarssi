@@ -99,7 +99,7 @@ function AdminDashboard() {
 				<div className="admin-stat-card">
 					<p className="admin-stat-label"> Totaal Events</p>
 					<p className="admin-stat-number">{data.totalEvents ?? "-"}</p>
-					<p className="admin-stat-help">Clicks, views, hovers…</p>
+					<p className="admin-stat-help">Clicks and views</p>
 				</div>
 			</div>
 

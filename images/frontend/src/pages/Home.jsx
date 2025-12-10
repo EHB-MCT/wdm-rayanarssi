@@ -65,6 +65,8 @@ function Home() {
 	const [brand, setBrand] = useState(searchParams.get("brand") || "all");
 	const [sort, setSort] = useState(searchParams.get("sort") || "price_asc");
 
+	const [stockEdits, setStockEdits] = useState({});
+
 	useEffect(() => {
 		if (!token) {
 			navigate("/login");
@@ -166,6 +168,58 @@ function Home() {
 	const initial =
 		user && user.username ? user.username.trim().charAt(0).toUpperCase() : "U";
 
+	const isAdmin = user && user.type === 0;
+
+	const handleStockChange = (productId, value) => {
+		setStockEdits((prev) => ({
+			...prev,
+			[productId]: value,
+		}));
+	};
+
+	const handleUpdateStock = async (productId) => {
+		const value = stockEdits[productId];
+
+		if (value === undefined || value === null || value === "") {
+			showToast("error", "Geef een stockwaarde in");
+			return;
+		}
+
+		const parsed = Number(value);
+		if (Number.isNaN(parsed) || parsed < 0) {
+			showToast("error", "Stock moet een positief getal zijn");
+			return;
+		}
+
+		try {
+			const res = await fetch(`${API_URL}/products/${productId}/stock`, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+					token,
+				},
+				body: JSON.stringify({ stock: parsed }),
+			});
+
+			const data = await res.json();
+
+			if (!res.ok) {
+				showToast("error", data.error || "Kon stock niet updaten");
+				return;
+			}
+
+			// products state updaten zodat UI meteen klopt
+			setProducts((prev) =>
+				prev.map((p) => (p._id === productId ? { ...p, stock: parsed } : p))
+			);
+
+			showToast("success", "Stock succesvol aangepast");
+		} catch (err) {
+			console.error(err);
+			showToast("error", "Er ging iets mis bij het updaten van stock");
+		}
+	};
+
 	return (
 		<Box className="page home-page">
 			<header className="home-header">
@@ -263,6 +317,39 @@ function Home() {
 								{product.brand} • {product.color}
 							</p>
 							<p className="product-card-price">€ {product.price.toFixed(2)}</p>
+							{isAdmin && (
+								<div
+									className="product-card-admin"
+									onClick={(e) => e.stopPropagation()}
+								>
+									<p className="product-card-admin-label">
+										Huidige stock: <strong>{product.stock ?? 0}</strong>
+									</p>
+
+									<div className="product-card-admin-row">
+										<input
+											type="number"
+											min="0"
+											className="product-card-stockInput"
+											value={
+												stockEdits[product._id] !== undefined
+													? stockEdits[product._id]
+													: product.stock ?? 0
+											}
+											onChange={(e) =>
+												handleStockChange(product._id, e.target.value)
+											}
+										/>
+										<button
+											type="button"
+											className="btn btn--primary btn--chip product-card-stockButton"
+											onClick={() => handleUpdateStock(product._id)}
+										>
+											Update stock
+										</button>
+									</div>
+								</div>
+							)}
 						</div>
 					</article>
 				))}
