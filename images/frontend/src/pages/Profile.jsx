@@ -78,7 +78,7 @@ function Profile() {
 		}
 	};
 
-const fetchOrders = async () => {
+	const fetchOrders = async () => {
 		setOrdersLoading(true);
 		try {
 			const res = await fetch(`${API_URL}/orders/history`, {
@@ -246,7 +246,9 @@ const fetchOrders = async () => {
 					</p>
 				)}
 
-				{ordersLoading && <p className="orders-hint">Gegevens aan het ophalen…</p>}
+				{ordersLoading && (
+					<p className="orders-hint">Gegevens aan het ophalen…</p>
+				)}
 
 				<div className="orders-list">
 					{orders.map((order) => (
@@ -266,10 +268,7 @@ const fetchOrders = async () => {
 								<p className="order-card-line">
 									<span>Totaal:</span>
 									<span>
-										€{" "}
-										{order.total
-											? Number(order.total).toFixed(2)
-											: "0.00"}
+										€ {order.total ? Number(order.total).toFixed(2) : "0.00"}
 									</span>
 								</p>
 								<p className="order-card-line">

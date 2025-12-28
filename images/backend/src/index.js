@@ -94,7 +94,6 @@ app.post("/login", async (req, res) => {
 			},
 			process.env.ACCES_TOKEN_SECRET,
 			{
-				algorithm: "HS256",
 				expiresIn: "1d",
 			}
 		);
@@ -117,6 +116,7 @@ app.post("/login", async (req, res) => {
 // Middleware to check token if user is authenticated
 const checkToken = (req, res, next) => {
 	const token = req.headers["token"];
+	console.log("Received token:", token); // Debugging line
 	if (token) {
 		try {
 			jwt.verify(token, process.env.ACCES_TOKEN_SECRET);
@@ -575,7 +575,7 @@ app.get("/orders/history", checkToken, async (req, res) => {
 	}
 });
 
-app.get("/admin", checkToken, async (req, res) => {
+app.get("/adminprofile", checkToken, async (req, res) => {
 	const token = req.headers["token"];
 	const userData = jwt.decode(token);
 	const userId = userData?.id;

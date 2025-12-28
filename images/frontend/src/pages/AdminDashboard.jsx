@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Heading, Text, Alert } from "@chakra-ui/react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = "http://localhost:3000";
 
 function AdminDashboard() {
 	const navigate = useNavigate();
@@ -22,11 +22,15 @@ function AdminDashboard() {
 			try {
 				setLoading(true);
 				setError("");
-
-				const res = await fetch(`${API_URL}/admin`, {
-					headers: { token },
+				console.log("Using token:", token); // Debugging line
+				const res = await fetch(`${API_URL}/adminprofile`, {
+					headers: {
+						"Content-Type": "application/json",
+						token,
+					},
 				});
 				const data = await res.json();
+				console.log("Fetched admin data:", data); // Debugging line
 				setData(data);
 			} catch (err) {
 				setError(err.message || "Er ging iets mis");
@@ -36,7 +40,7 @@ function AdminDashboard() {
 		};
 
 		fetchData();
-	}, [token, navigate]);
+	}, []);
 
 	const handleLogout = () => {
 		localStorage.removeItem("token");
@@ -153,8 +157,8 @@ function AdminDashboard() {
 								<tr key={u.id}>
 									<td>{u.username}</td>
 									<td>{u.email}</td>
-									<td >{u.orderCount}</td>
-									<td >{u.eventsCount}</td>
+									<td>{u.orderCount}</td>
+									<td>{u.eventsCount}</td>
 									<td>{u.loginCount}</td>
 								</tr>
 							))}
