@@ -10,11 +10,13 @@ import {
 	Alert,
 	Link,
 } from "@chakra-ui/react";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function Login() {
 	const navigate = useNavigate();
+	const { login } = useAuth();
 
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -44,10 +46,9 @@ function Login() {
 				return;
 			}
 
-			if (data.token) {
-				localStorage.setItem("token", data.token);
+if (data.token) {
+				login(data.user || { type: 1 }, data.token);
 				setMessage(data.message || "Succesvol ingelogd");
-
 				setTimeout(() => {
 					navigate("/home");
 				}, 700);

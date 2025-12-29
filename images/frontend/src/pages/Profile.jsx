@@ -3,14 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { Box } from "@chakra-ui/react";
 import AdminDashboard from "./AdminDashboard";
 import { USER } from "./../models/user";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_URL = "http://localhost:3000";
 
 function Profile() {
-	const token = localStorage.getItem("token");
+	const { user, isAuthenticated, logout } = useAuth();
 	const navigate = useNavigate();
 
-	const [user, setUser] = useState(null);
+	const [profileUser, setProfileUser] = useState(null);
 	const [cart, setCart] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [message, setMessage] = useState("");
@@ -19,15 +20,17 @@ function Profile() {
 	const [orders, setOrders] = useState([]);
 	const [ordersLoading, setOrdersLoading] = useState(true);
 
-	useEffect(() => {
-		if (!token) {
+useEffect(() => {
+		if (!isAuthenticated) {
 			navigate("/login");
 			return;
 		}
-		fetchProfile();
-		fetchCart();
-		fetchOrders();
-	}, []);
+		if (user) {
+			setProfileUser(user);
+			fetchCart();
+			fetchOrders();
+		}
+	}, [isAuthenticated, user, navigate]);
 
 	const showMessage = (text) => {
 		setMessage(text);
@@ -39,26 +42,12 @@ function Profile() {
 		setTimeout(() => setError(""), 2500);
 	};
 
-	const fetchProfile = async () => {
-		try {
-			const res = await fetch(`${API_URL}/profile`, {
-				headers: { "Content-Type": "application/json", token },
-			});
-			const data = await res.json();
-			if (!res.ok) {
-				showError(data.error || "Kon profiel niet ophalen");
-				return;
-			}
-			setUser(data.user);
-		} catch (err) {
-			console.error(err);
-			showError("Er ging iets mis bij het ophalen van je profiel");
-		}
-	};
 
-	const fetchCart = async () => {
+
+const fetchCart = async () => {
 		setLoading(true);
 		try {
+			const token = localStorage.getItem("token");
 			const res = await fetch(`${API_URL}/cart`, {
 				headers: { "Content-Type": "application/json", token },
 			});
@@ -78,9 +67,10 @@ function Profile() {
 		}
 	};
 
-	const fetchOrders = async () => {
+const fetchOrders = async () => {
 		setOrdersLoading(true);
 		try {
+			const token = localStorage.getItem("token");
 			const res = await fetch(`${API_URL}/orders/history`, {
 				headers: { "Content-Type": "application/json", token },
 			});
@@ -100,8 +90,9 @@ function Profile() {
 		}
 	};
 
-	const handleRemoveItem = async (itemId) => {
+const handleRemoveItem = async (itemId) => {
 		try {
+			const token = localStorage.getItem("token");
 			const res = await fetch(`${API_URL}/cart/${itemId}`, {
 				method: "DELETE",
 				headers: { "Content-Type": "application/json", token },
@@ -119,19 +110,19 @@ function Profile() {
 		}
 	};
 
-	const handleLogout = () => {
-		localStorage.removeItem("token");
+const handleLogout = () => {
+		logout();
 		navigate("/login");
 	};
 
-	if (!token) return null;
+	if (!isAuthenticated || !profileUser) return null;
 
 	const totalPrice = cart.reduce(
 		(sum, item) => sum + (item.product?.price || 0) * (item.quantity || 1),
 		0
 	);
 
-	return user && user.type === USER.CLIENT ? (
+	return profileUser && profileUser.type === USER.CLIENT ? (
 		<Box className="page profile-page">
 			{message && <div className="toast toast--success">{message}</div>}
 			{error && <div className="toast toast--error">{error}</div>}
@@ -146,7 +137,7 @@ function Profile() {
 						← Terug
 					</button>
 					<div>
-						<h1 className="profile-title">Profiel van {user?.username}</h1>
+						<h1 className="profile-title">Profiel van {profileUser?.username}</h1>
 						<p className="profile-subtitle">
 							Overzicht van je account en mandje.
 						</p>

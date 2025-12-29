@@ -9,11 +9,13 @@ import {
   Text,
   Alert,
 } from "@chakra-ui/react";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function AdminLogin() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +40,7 @@ function AdminLogin() {
         throw new Error(data.error || "Admin login mislukt");
       }
 
-      localStorage.setItem("adminToken", data.token);
+login({ type: 0 }, data.token);
       setMessage("Succesvol ingelogd als admin");
 
       setTimeout(() => {
