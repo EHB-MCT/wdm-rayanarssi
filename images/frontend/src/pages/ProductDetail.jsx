@@ -22,18 +22,41 @@ function ProductDetail() {
 	const [product, setProduct] = useState(null);
 
 	useEffect(() => {
-		setLoading(true);
-		fetch(`http://localhost:3000/product/${id}`)
-			.then((res) => res.json())
-			.then((data) => {
+		const fetchProduct = async () => {
+			setLoading(true);
+			try {
+				const res = await fetch(`http://localhost:3000/product/${id}`);
+				const data = await res.json();
 				setProduct(data.product);
-				setLoading(false);
-			})
-			.catch((err) => {
+				
+				// Track product view event
+				if (token) {
+					try {
+						await fetch(`http://localhost:3000/events`, {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								token,
+							},
+							body: JSON.stringify({
+								type: "product_view",
+								timestamp: new Date().toISOString(),
+								productId: id,
+							}),
+						});
+					} catch (eventErr) {
+						console.error("Failed to track product view:", eventErr);
+					}
+				}
+			} catch (err) {
 				console.error("Error fetching product:", err);
+			} finally {
 				setLoading(false);
-			});
-	}, [id]);
+			}
+		};
+
+		fetchProduct();
+	}, [id, token]);
 
 	// product komt rechtstreeks uit Home via navigate state
 

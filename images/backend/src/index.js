@@ -503,7 +503,7 @@ app.post("/events", checkToken, async (req, res) => {
 	const token = req.headers["token"];
 	const userData = jwt.decode(token);
 	const userId = userData?.id;
-	const { type, timestamp } = req.body;
+	const { type, timestamp, productId } = req.body;
 	try {
 		await client.connect();
 		const db = client.db("dev5");
@@ -512,6 +512,7 @@ app.post("/events", checkToken, async (req, res) => {
 			userId,
 			type,
 			timestamp,
+			productId,
 		});
 
 		return res.status(200).json({
@@ -586,6 +587,7 @@ app.get("/adminprofile", checkToken, async (req, res) => {
 		const ordersCollection = db.collection("checkout");
 		const usersCollection = db.collection("users");
 		const eventsCollection = db.collection("events");
+		const productsCollection = db.collection("products");
 
 		const user = await usersCollection.findOne({ id: userId });
 		if (!user || user.type !== 0) {
@@ -610,6 +612,58 @@ app.get("/adminprofile", checkToken, async (req, res) => {
 			])
 			.next();
 		const totalEvents = await eventsCollection.countDocuments();
+
+		// Calculate most viewed products
+		const productViews = await eventsCollection
+			.aggregate([
+				{ $match: { type: "product_view", productId: { $exists: true } } },
+				{
+					$group: {
+						_id: "$productId",
+						views: { $sum: 1 },
+					},
+				},
+				{ $sort: { views: -1 } },
+				{ $limit: 10 },
+			])
+			.toArray();
+
+		// Calculate add to cart events
+		const addToCartEvents = await eventsCollection
+			.aggregate([
+				{ $match: { type: "add_to_cart", productId: { $exists: true } } },
+				{
+					$group: {
+						_id: "$productId",
+						addToCart: { $sum: 1 },
+					},
+				},
+			])
+			.toArray();
+
+		// Create maps for quick lookup
+		const viewsMap = {};
+		productViews.forEach((p) => {
+			viewsMap[p._id] = p.views;
+		});
+
+		const cartMap = {};
+		addToCartEvents.forEach((c) => {
+			cartMap[c._id] = c.addToCart;
+		});
+
+		// Get product details for top viewed products
+		const topProducts = await Promise.all(
+			productViews.map(async (p) => {
+				const product = await productsCollection.findOne({ _id: p._id });
+				return {
+					productId: p._id,
+					name: product ? product.name : "Unknown Product",
+					views: p.views,
+					addToCart: cartMap[p._id] || 0,
+				};
+			})
+		);
 
 		const eventsPerUser = await eventsCollection
 			.aggregate([
@@ -660,12 +714,14 @@ app.get("/adminprofile", checkToken, async (req, res) => {
 			totalOrders,
 			totalRevenue: totalRevenue ? totalRevenue.total : 0,
 			totalEvents,
+			topProducts,
 			users: usersWithStats,
 		});
 	} catch (err) {
+		console.error(err);
 		return res.status(500).json({
 			status: 500,
-			error: "Kon bestelgeschiedenis niet ophalen",
+			error: "Kon admin data niet ophalen",
 		});
 	}
 });
