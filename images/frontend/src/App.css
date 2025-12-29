@@ -370,9 +370,24 @@ a {
 	padding-inline: 0.75rem !important;
 }
 
-.home-select option {
-	background: #020617;
-	color: #e5e7eb;
+.home-select option,
+.home-select optgroup {
+	background: #020617 !important;
+	color: #e5e7eb !important;
+}
+
+/* Additional dropdown fixes for Chakra UI */
+.chakra-select__wrapper .home-select option,
+.chakra-select__wrapper .home-select optgroup,
+.chakra-select fieldset option,
+.chakra-select fieldset optgroup {
+	background: #020617 !important;
+	color: #e5e7eb !important;
+}
+
+/* Ensure dropdown arrow is visible */
+.chakra-select__icon-wrapper {
+	color: #e5e7eb !important;
 }
 
 .home-error-text {
