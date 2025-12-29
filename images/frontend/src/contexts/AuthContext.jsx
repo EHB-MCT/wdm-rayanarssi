@@ -46,8 +46,8 @@ export function AuthProvider({ children }) {
 		localStorage.removeItem("token");
 	};
 
-	const isAdmin = user?.type === USER.ADMIN;
-	const isClient = user?.type === USER.CLIENT;
+	const isAdmin = user?.type === 0; // USER.ADMIN = 0
+	const isClient = user?.type === 1; // USER.CLIENT = 1
 	const isAuthenticated = !!user;
 
 	const value = {
