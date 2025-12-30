@@ -11,7 +11,7 @@ An e-commerce platform for clearance of one-size-fits-all outfits where people c
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/rayanarssi/wdm-rayanarssi.git
+git clone https://github.com/EHB-MCT/wdm-rayanarssi.git
 cd wdm-rayanarssi
 ```
 
