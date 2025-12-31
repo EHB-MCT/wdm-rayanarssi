@@ -28,9 +28,7 @@ function ProtectedRoute({ children, adminOnly = false }) {
 		return <Navigate to="/home" replace />;
 	}
 	
-	if (!adminOnly && isAdmin) {
-		return <Navigate to="/admin" replace />;
-	}
+
 	
 	return children;
 }
