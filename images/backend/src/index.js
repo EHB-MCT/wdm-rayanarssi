@@ -120,18 +120,27 @@ app.post("/login", async (req, res) => {
 // Middleware to check token if user is authenticated
 const checkToken = (req, res, next) => {
 	const token = req.headers["token"];
-	console.log("Received token:", token); // Debugging line
+	console.log("=== Token Debug ===");
+	console.log("Headers received:", Object.keys(req.headers));
+	console.log("Token header:", req.headers.token);
+	console.log("Authorization header:", req.headers.authorization);
+	console.log("Token length:", token ? token.length : "undefined");
+	console.log("==================");
+	
 	if (token) {
 		try {
 			jwt.verify(token, process.env.ACCES_TOKEN_SECRET);
+			console.log("✅ Token is valid");
 			next();
 		} catch (err) {
+			console.log("❌ Token verification failed:", err.message);
 			return res.status(410).send({
 				error: "Invalid token",
 				status: 410,
 			});
 		}
 	} else {
+		console.log("❌ No token provided");
 		return res.status(401).send({
 			error: "Unauhtorized",
 			status: 401,
