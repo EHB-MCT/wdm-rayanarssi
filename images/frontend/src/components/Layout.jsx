@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 export default function Layout({ children }) {
 	const navigate = useNavigate();
-	const { isAuthenticated, isAdmin, isClient, loading } = useAuth();
+	const { isAdmin, isClient, loading } = useAuth();
 
 	if (loading) {
 		return (
@@ -42,14 +42,12 @@ export default function Layout({ children }) {
 							</Link>
 						)}
 
-						{/* Admin Panel - visible only to logged-in admins */}
+						{/* Admin - visible only to logged-in admins */}
 						{isAdmin && (
 							<Link as={RouterLink} to="/admin" className="layout-nav-link">
-								Admin Panel
+								Admin
 							</Link>
 						)}
-
-						
 					</HStack>
 				</Flex>
 			</header>
