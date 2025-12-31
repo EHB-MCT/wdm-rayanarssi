@@ -50,6 +50,9 @@ export function AuthProvider({ children }) {
 	const isClient = user?.type === 1; // USER.CLIENT = 1
 	const isAuthenticated = !!user;
 
+	// Debug logging
+	console.log("Auth Debug:", { user, isAdmin, isClient, userType: user?.type });
+
 	const value = {
 		user,
 		isAuthenticated,
