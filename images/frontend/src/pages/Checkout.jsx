@@ -98,8 +98,8 @@ function Checkout() {
 			{loading && <p className="checkout-loading">Je mandje wordt geladen…</p>}
 
 			<div className="checkout-list">
-				{cart.map((item) => (
-					<div key={item._id} className="checkout-item">
+				{cart.map((item, index) => (
+					<div key={item._id || item.cartItemId || `checkout-${index}`} className="checkout-item">
 						<img
 							src={item.product.image}
 							alt={item.product.name}

@@ -123,8 +123,8 @@ function AdminDashboard() {
 							</tr>
 						</thead>
 						<tbody>
-							{data.topProducts?.map((p) => (
-								<tr key={p.productId}>
+							{data.topProducts?.map((p, index) => (
+								<tr key={p.productId || p._id || `top-product-${index}`}>
 									<td>{p.name}</td>
 									<td className="admin-td-num">{p.views}</td>
 									<td className="admin-td-num">{p.addToCart}</td>
@@ -153,8 +153,8 @@ function AdminDashboard() {
 							</tr>
 						</thead>
 						<tbody>
-							{data.users?.map((u) => (
-								<tr key={u.id}>
+							{data.users?.map((u, index) => (
+								<tr key={u.id || u._id || u.email || `user-${index}`}>
 									<td>{u.username}</td>
 									<td>{u.email}</td>
 									<td>{u.orderCount}</td>

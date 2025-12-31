@@ -172,8 +172,8 @@ const handleLogout = () => {
 				{loading && <p className="cart-hint">Mandje aan het ophalen…</p>}
 
 				<div className="cart-grid">
-					{cart.map((item) => (
-						<article key={item._id} className="cart-card">
+					{cart.map((item, index) => (
+						<article key={item._id || item.cartItemId || `cart-${index}`} className="cart-card">
 							<div className="cart-card-imageWrapper">
 								{item.product?.image && (
 									<img
@@ -242,8 +242,8 @@ const handleLogout = () => {
 				)}
 
 				<div className="orders-list">
-					{orders.map((order) => (
-						<article key={order._id} className="order-card">
+					{orders.map((order, index) => (
+						<article key={order._id || `order-${index}`} className="order-card">
 							<div className="order-card-header">
 								<h3 className="order-card-title">
 									Bestelling #{order._id?.slice(-6) || ""}
