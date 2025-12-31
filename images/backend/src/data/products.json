@@ -1,0 +1,26 @@
+[
+  {
+    "_id": "topS05",
+    "name": "City Tag Tee",
+    "category": "tops",
+    "price": 34.99,
+    "image": "https://res.cloudinary.com/dj7gali29/image/upload/v1763476580/download_znvjii.jpg",
+    "size": "M",
+    "color": "Blauw",
+    "brand": "Trackside",
+    "description": "Metro graffiti geïnspireerde graphic tee.",
+    "stock": 5
+  },
+  {
+    "_id": "jacketS10",
+    "name": "Hooded Parka Concrete",
+    "category": "jackets",
+    "price": 159.99,
+    "image": "https://res.cloudinary.com/dj7gali29/image/upload/v1763480061/a6e50afa1b209cb33bd157a7b0099362_28be551f-29a8-4252-8537-9915a8c80d54_nnih72.webp",
+    "size": "M",
+    "color": "Grijs",
+    "brand": "Bloc Studio",
+    "description": "Lange parka voor winter street fits.",
+    "stock": 5
+  }
+]
