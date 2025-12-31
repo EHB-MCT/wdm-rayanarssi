@@ -68,8 +68,9 @@ const res = await fetch(`${API_URL}/login`, {
 							navigate("/home");
 						}
 					}, 700);
-				} catch {
+				} catch (error) {
 					// Fallback if profile fetch fails
+					console.error("Profile fetch error:", error);
 					login({ type: 1 }, data.token);
 					setMessage(data.message || "Succesvol ingelogd");
 					setTimeout(() => navigate("/home"), 700);
@@ -112,6 +113,7 @@ const res = await fetch(`${API_URL}/login`, {
 								onChange={(e) => setPassword(e.target.value)}
 								placeholder="Wachtwoord"
 								required
+								autoComplete="current-password"
 							/>
 						</label>
 
