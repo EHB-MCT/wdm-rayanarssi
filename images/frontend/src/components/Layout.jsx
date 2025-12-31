@@ -4,7 +4,10 @@ import { useAuth } from "../contexts/AuthContext";
 
 export default function Layout({ children }) {
 	const navigate = useNavigate();
-	const { isAdmin, isClient, loading } = useAuth();
+	const { isAdmin, isClient, loading, user } = useAuth();
+
+	// Debug logging
+	console.log("Layout Debug:", { isAdmin, isClient, loading, user });
 
 	if (loading) {
 		return (
