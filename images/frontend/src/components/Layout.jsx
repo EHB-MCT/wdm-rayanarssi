@@ -35,8 +35,8 @@ export default function Layout({ children }) {
 							Shop
 						</Link>
 
-						{/* Profile - visible only to logged-in clients */}
-						{isClient && (
+						{/* Profile - visible only to logged-in users (both client and admin) */}
+						{isAuthenticated && (
 							<Link as={RouterLink} to="/profile" className="layout-nav-link">
 								Profile
 							</Link>
