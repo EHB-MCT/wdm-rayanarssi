@@ -35,10 +35,17 @@ export default function Layout({ children }) {
 							Shop
 						</Link>
 
-						{/* Profile - visible only to logged-in users (both client and admin) */}
-						{isAuthenticated && (
+						{/* Profile - visible only to logged-in clients */}
+						{isClient && (
 							<Link as={RouterLink} to="/profile" className="layout-nav-link">
 								Profile
+							</Link>
+						)}
+
+						{/* Admin Panel - visible only to logged-in admins */}
+						{isAdmin && (
+							<Link as={RouterLink} to="/admin" className="layout-nav-link">
+								Admin Panel
 							</Link>
 						)}
 
