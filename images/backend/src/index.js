@@ -95,7 +95,7 @@ app.post("/login", async (req, res) => {
 			},
 			process.env.ACCES_TOKEN_SECRET,
 			{
-				expiresIn: "1d",
+				expiresIn: "30d",
 			}
 		);
 

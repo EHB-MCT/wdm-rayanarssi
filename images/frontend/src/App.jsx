@@ -9,7 +9,6 @@ import Profile from "./pages/Profile";
 import Checkout from "./pages/Checkout";
 
 import ProductDetail from "./pages/ProductDetail";
-import AdminLogin from "./pages/AdminLogin.jsx";
 import AdminDashboard from "./pages/AdminDashboard";
 
 // Protected route component
@@ -41,7 +40,6 @@ function App() {
 					{" "}
 					<Route path="/" element={<Register />} />
 					<Route path="/login" element={<Login />} />
-					<Route path="/admin/login" element={<AdminLogin />} />
 					
 					{/* Client routes */}
 					<Route 
