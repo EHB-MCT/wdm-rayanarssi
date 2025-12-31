@@ -33,7 +33,7 @@ function Login() {
 		clearMessages();
 
 		try {
-			const res = await fetch(`${API_URL}/login`, {
+const res = await fetch(`${API_URL}/login`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email, password }),
@@ -46,11 +46,44 @@ function Login() {
 				return;
 			}
 
-if (data.token) {
-				login(data.user || { type: 1 }, data.token);
+			// Get user data after successful login
+			if (data.token) {
+				try {
+					const profileRes = await fetch(`${API_URL}/profile`, {
+						headers: { 
+							"Content-Type": "application/json", 
+							token: data.token 
+						},
+					});
+					
+					const profileData = await profileRes.json();
+					const userData = profileData.user || { type: 1 };
+					login(userData, data.token);
+					setMessage(data.message || "Succesvol ingelogd");
+					setTimeout(() => {
+						// Redirect admin to dashboard, clients to home
+						if (userData.type === 0) {
+							navigate("/admin");
+						} else {
+							navigate("/home");
+						}
+					}, 700);
+				} catch {
+					// Fallback if profile fetch fails
+					login({ type: 1 }, data.token);
+					setMessage(data.message || "Succesvol ingelogd");
+					setTimeout(() => navigate("/home"), 700);
+				}
+				const userData = data.user || { type: 1 };
+				login(userData, data.token);
 				setMessage(data.message || "Succesvol ingelogd");
 				setTimeout(() => {
-					navigate("/home");
+					// Redirect admin to dashboard, clients to home
+					if (userData.type === 0) {
+						navigate("/admin");
+					} else {
+						navigate("/home");
+					}
 				}, 700);
 			}
 		} catch (err) {
