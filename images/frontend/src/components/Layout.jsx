@@ -49,12 +49,7 @@ export default function Layout({ children }) {
 							</Link>
 						)}
 
-						{/* Admin - visible only to logged-in admins */}
-						{isAdmin && (
-							<Link as={RouterLink} to="/admin" className="layout-nav-link">
-								Admin
-							</Link>
-						)}
+						
 					</HStack>
 				</Flex>
 			</header>
