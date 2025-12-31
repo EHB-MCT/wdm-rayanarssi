@@ -5,7 +5,7 @@ import AdminDashboard from "./AdminDashboard";
 import { USER } from "./../models/user";
 import { useAuth } from "../contexts/AuthContext";
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function Profile() {
 	const { user, isAuthenticated, logout, handleApiError } = useAuth();

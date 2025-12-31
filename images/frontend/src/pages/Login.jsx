@@ -74,17 +74,6 @@ const res = await fetch(`${API_URL}/login`, {
 					setMessage(data.message || "Succesvol ingelogd");
 					setTimeout(() => navigate("/home"), 700);
 				}
-				const userData = data.user || { type: 1 };
-				login(userData, data.token);
-				setMessage(data.message || "Succesvol ingelogd");
-				setTimeout(() => {
-					// Redirect admin to dashboard, clients to home
-					if (userData.type === 0) {
-						navigate("/admin");
-					} else {
-						navigate("/home");
-					}
-				}, 700);
 			}
 		} catch (err) {
 			console.error(err);
