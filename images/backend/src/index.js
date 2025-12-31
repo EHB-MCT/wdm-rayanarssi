@@ -5,6 +5,7 @@ const uuid = require("uuid-v4");
 const bcrypt = require("bcrypt");
 
 const { MongoClient } = require("mongodb");
+const { seedDatabase } = require("./seed");
 const client = new MongoClient(process.env.MONGODB_URI);
 const jwt = require("jsonwebtoken");
 app.use(express.json());
@@ -726,6 +727,23 @@ app.get("/adminprofile", checkToken, async (req, res) => {
 	}
 });
 
-app.listen(process.env.PORT, () => {
-	console.log(`Server is running on port ${process.env.PORT}`);
-});
+// Start server with automatic database seeding
+async function startServer() {
+	try {
+		// Auto-seed database before starting server
+		console.log('🌱 Checking database for initial data...');
+		await seedDatabase();
+		console.log('✅ Database check completed');
+		
+		// Start the server after seeding
+		app.listen(process.env.PORT, () => {
+			console.log(`🚀 Server is running on port ${process.env.PORT}`);
+		});
+	} catch (error) {
+		console.error('❌ Failed to start server:', error);
+		process.exit(1);
+	}
+}
+
+// Start the server
+startServer();

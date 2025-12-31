@@ -34,7 +34,7 @@ services:
     volumes:
       - ./images/backend/src:/usr/app/src
     env_file:
-      - ./images/backend/src/.env
+      - .env
     environment:
       - MONGODB_URI=mongodb://admin:password123@mongodb:27017/dev5?authSource=admin
     depends_on:
