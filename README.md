@@ -12,10 +12,24 @@ An e-commerce platform for clearance of one-size-fits-all outfits where people c
 
 ```bash
 git clone https://github.com/EHB-MCT/wdm-rayanarssi.git
-cd wdm-rayanarssi
+
 ```
 
-### 2. Start the Application with Docker
+### 2. Configure Environment Variables
+
+Before starting the application, you need to set up the environment configuration file:
+
+```bash
+cp .env.template .env
+```
+
+This command creates a copy of the environment template file. The `.env` file contains essential configuration variables for the application, including:
+- Backend port settings
+- MongoDB database connection string
+- JWT secret key for authentication
+- Frontend API URL
+
+### 3. Start the Application with Docker
 
 ```bash
 docker compose up --build
@@ -33,11 +47,35 @@ Wait for the containers to start completely. You should see output indicating al
 
 ### 4. Access the Application
 
+**For Local Access (from the same computer):**
 Open your web browser and navigate to:
 
 - **Frontend Application**: http://localhost:5173
 - **Backend API**: http://localhost:3000
 - **Mongo Express**: http://localhost:8081
+
+**For Teacher/Remote Access (from different computers):**
+To allow teachers or others to access your application from their own computers:
+
+1. **Find your local IP address:**
+   - Windows: Open Command Prompt and run `ipconfig`
+   - Mac/Linux: Open Terminal and run `ifconfig` or `ip addr`
+   - Look for your Wi-Fi/Ethernet IP (usually starts with 192.168.x.x)
+
+2. **Access using your IP address:**
+   Replace `YOUR_IP_ADDRESS` with your actual IP address in these URLs:
+   
+   - **Frontend Application**: http://YOUR_IP_ADDRESS:5173
+   - **Backend API**: http://YOUR_IP_ADDRESS:3000
+   - **Mongo Express**: http://YOUR_IP_ADDRESS:8081
+
+   Example (if your IP is 192.168.1.100):
+   - http://192.168.1.100:5173
+
+3. **For Teachers viewing products:**
+   The products are already loaded in the database. Teachers can view them by accessing:
+   - Frontend: http://YOUR_IP_ADDRESS:5173
+   - Direct API check: http://YOUR_IP_ADDRESS:3000/products
 
 ## Testing the Application
 
