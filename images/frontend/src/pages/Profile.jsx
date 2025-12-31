@@ -8,7 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 const API_URL = "http://localhost:3000";
 
 function Profile() {
-	const { user, isAuthenticated, logout } = useAuth();
+	const { user, isAuthenticated, logout, handleApiError } = useAuth();
 	const navigate = useNavigate();
 
 	const [profileUser, setProfileUser] = useState(null);
@@ -51,6 +51,7 @@ const fetchCart = async () => {
 			const res = await fetch(`${API_URL}/cart`, {
 				headers: { "Content-Type": "application/json", token },
 			});
+			await handleApiError(res);
 			const data = await res.json();
 			if (!res.ok) {
 				showError(data.error || "Kon mandje niet ophalen");
@@ -60,6 +61,10 @@ const fetchCart = async () => {
 			setCart(data.cart || []);
 		} catch (err) {
 			console.error(err);
+			if (err.message === "Session expired") {
+				// User was logged out, no need to show error
+				return;
+			}
 			showError("Er ging iets mis bij het ophalen van het mandje");
 			setCart([]);
 		} finally {
@@ -74,6 +79,7 @@ const fetchOrders = async () => {
 			const res = await fetch(`${API_URL}/orders/history`, {
 				headers: { "Content-Type": "application/json", token },
 			});
+			await handleApiError(res);
 			const data = await res.json();
 			if (!res.ok) {
 				showError(data.error || "Kon bestelgeschiedenis niet ophalen");
@@ -83,6 +89,10 @@ const fetchOrders = async () => {
 			setOrders(data.orders || []);
 		} catch (err) {
 			console.error(err);
+			if (err.message === "Session expired") {
+				// User was logged out, no need to show error
+				return;
+			}
 			showError("Er ging iets mis bij het ophalen van je bestelgeschiedenis");
 			setOrders([]);
 		} finally {
@@ -97,6 +107,7 @@ const handleRemoveItem = async (itemId) => {
 				method: "DELETE",
 				headers: { "Content-Type": "application/json", token },
 			});
+			await handleApiError(res);
 			const data = await res.json();
 			if (!res.ok) {
 				showError(data.error || "Kon item niet verwijderen");
@@ -106,6 +117,10 @@ const handleRemoveItem = async (itemId) => {
 			fetchCart();
 		} catch (err) {
 			console.error(err);
+			if (err.message === "Session expired") {
+				// User was logged out, no need to show error
+				return;
+			}
 			showError("Er ging iets mis bij het verwijderen");
 		}
 	};
